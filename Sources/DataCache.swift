@@ -247,7 +247,8 @@ public class DataCache {
     }
     
     private func cachePathForKey(key: String) -> String {
-        return (cachePath as NSString).stringByAppendingPathComponent(key)
+        let fileName = key.kf_MD5
+        return (cachePath as NSString).stringByAppendingPathComponent(fileName)
     }
     
     private func normalizeKeyForRawKey(rawKey: String) -> String {
