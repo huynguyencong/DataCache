@@ -55,10 +55,8 @@ public class DataCache {
     
     // MARK: Store
     
-    public func writeData(data: NSData, forKey rawKey: String) {
-        let key = normalizeKeyForRawKey(rawKey)
-        
     /// Write data for key
+    public func writeData(data: NSData, forKey key: String) {
         memCache.setObject(data, forKey: key)
         writeDataToDisk(data, key: key)
     }
@@ -80,9 +78,8 @@ public class DataCache {
     
     // MARK: Read
     
-    public func readDataForKey(rawKey:String) -> NSData? {
-        let key = normalizeKeyForRawKey(rawKey)
     /// Read data for key
+    public func readDataForKey(key:String) -> NSData? {
         var data = memCache.objectForKey(key) as? NSData
         
         if data == nil {
@@ -260,10 +257,6 @@ public class DataCache {
     private func cachePathForKey(key: String) -> String {
         let fileName = key.kf_MD5
         return (cachePath as NSString).stringByAppendingPathComponent(fileName)
-    }
-    
-    private func normalizeKeyForRawKey(rawKey: String) -> String {
-        return rawKey.stringByReplacingOccurrencesOfString("/", withString: "--")
     }
 }
 
