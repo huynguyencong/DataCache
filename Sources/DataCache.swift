@@ -11,6 +11,7 @@ import UIKit
 public class DataCache {
     private static let cacheDirectoryPrefix = "com.nch.cache."
     private static let ioQueuePrefix = "com.nch.queue."
+    private static let defaultMaxCachePeriodInSecond: NSTimeInterval = 60 * 60 * 24 * 7         // a week
     
     public static var defaultCache = DataCache(name: "default")
     
@@ -21,6 +22,10 @@ public class DataCache {
     private let fileManager: NSFileManager! = nil
     
     public var name: String = ""
+    public var maxCachePeriodInSecond = DataCache.defaultMaxCachePeriodInSecond
+    
+    // size allocate for disk cache, in byte
+    public var maxDiskCacheSize: UInt = 0
     
     public init(name: String, path: String? = nil) {
         self.name = name
@@ -36,7 +41,7 @@ public class DataCache {
         
         #if !os(OSX) && !os(watchOS)
             NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(DataCache.cleanExpiredDiskCache), name: UIApplicationWillTerminateNotification, object: nil)
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(DataCache.backgroundCleanExpiredDiskCache), name: UIApplicationDidEnterBackgroundNotification, object: nil)
+            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(DataCache.cleanExpiredDiskCache), name: UIApplicationDidEnterBackgroundNotification, object: nil)
         #endif
     }
     
@@ -110,15 +115,136 @@ public class DataCache {
     
     // MARK: Clean
     
-    @objc private func cleanExpiredDiskCache() {
-        
+    public func cleanMemCache() {
+        memCache.removeAllObjects()
     }
     
-    @objc private func backgroundCleanExpiredDiskCache() {
-        
+    public func clean() {
+        cleanMemCache()
+        cleanExpiredDiskCache()
     }
     
-    // MARK: Utils
+    /**
+     Clean expired disk cache. This is an async operation.
+     */
+    @objc public func cleanExpiredDiskCache() {
+        cleanExpiredDiskCacheWithCompletionHander(nil)
+    }
+    
+    /**
+     This method is from Kingfisher
+     Clean expired disk cache. This is an async operation.
+     
+     - parameter completionHandler: Called after the operation completes.
+     */
+    public func cleanExpiredDiskCacheWithCompletionHander(completionHandler: (()->())?) {
+        
+        // Do things in cocurrent io queue
+        dispatch_async(ioQueue, { () -> Void in
+            
+            var (URLsToDelete, diskCacheSize, cachedFiles) = self.travelCachedFiles()
+            
+            for fileURL in URLsToDelete {
+                do {
+                    try self.fileManager.removeItemAtURL(fileURL)
+                } catch _ {
+                }
+            }
+            
+            if self.maxDiskCacheSize > 0 && diskCacheSize > self.maxDiskCacheSize {
+                let targetSize = self.maxDiskCacheSize / 2
+                
+                // Sort files by last modify date. We want to clean from the oldest files.
+                let sortedFiles = cachedFiles.keysSortedByValue {
+                    resourceValue1, resourceValue2 -> Bool in
+                    
+                    if let date1 = resourceValue1[NSURLContentModificationDateKey] as? NSDate,
+                        date2 = resourceValue2[NSURLContentModificationDateKey] as? NSDate {
+                        return date1.compare(date2) == .OrderedAscending
+                    }
+                    // Not valid date information. This should not happen. Just in case.
+                    return true
+                }
+                
+                for fileURL in sortedFiles {
+                    
+                    do {
+                        try self.fileManager.removeItemAtURL(fileURL)
+                    } catch {
+                        
+                    }
+                    
+                    URLsToDelete.append(fileURL)
+                    
+                    if let fileSize = cachedFiles[fileURL]?[NSURLTotalFileAllocatedSizeKey] as? NSNumber {
+                        diskCacheSize -= fileSize.unsignedLongValue
+                    }
+                    
+                    if diskCacheSize < targetSize {
+                        break
+                    }
+                }
+            }
+            
+            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                
+                if URLsToDelete.count != 0 {
+                    let cleanedHashes = URLsToDelete.map({ (url) -> String in
+                        return url.lastPathComponent!
+                    })
+                }
+                
+                completionHandler?()
+            })
+        })
+    }
+    
+    // MARK: Helpers
+    
+    // This method is from Kingfisher
+    
+    private func travelCachedFiles() -> (URLsToDelete: [NSURL], diskCacheSize: UInt, cachedFiles: [NSURL: [NSObject: AnyObject]]) {
+        
+        let diskCacheURL = NSURL(fileURLWithPath: cachePath)
+        let resourceKeys = [NSURLIsDirectoryKey, NSURLContentModificationDateKey, NSURLTotalFileAllocatedSizeKey]
+        let expiredDate = NSDate(timeIntervalSinceNow: -self.maxCachePeriodInSecond)
+        
+        var cachedFiles = [NSURL: [NSObject: AnyObject]]()
+        var URLsToDelete = [NSURL]()
+        var diskCacheSize: UInt = 0
+        
+        if let fileEnumerator = self.fileManager.enumeratorAtURL(diskCacheURL, includingPropertiesForKeys: resourceKeys, options: NSDirectoryEnumerationOptions.SkipsHiddenFiles, errorHandler: nil),
+            urls = fileEnumerator.allObjects as? [NSURL] {
+            for fileURL in urls {
+                
+                do {
+                    let resourceValues = try fileURL.resourceValuesForKeys(resourceKeys)
+                    // If it is a Directory. Continue to next file URL.
+                    if let isDirectory = resourceValues[NSURLIsDirectoryKey] as? NSNumber {
+                        if isDirectory.boolValue {
+                            continue
+                        }
+                    }
+                    
+                    // If this file is expired, add it to URLsToDelete
+                    if let modificationDate = resourceValues[NSURLContentModificationDateKey] as? NSDate {
+                        if modificationDate.laterDate(expiredDate) == expiredDate {
+                            URLsToDelete.append(fileURL)
+                            continue
+                        }
+                    }
+                    
+                    if let fileSize = resourceValues[NSURLTotalFileAllocatedSizeKey] as? NSNumber {
+                        diskCacheSize += fileSize.unsignedLongValue
+                        cachedFiles[fileURL] = resourceValues
+                    }
+                } catch _ {
+                }
+            }
+        }
+        
+        return (URLsToDelete, diskCacheSize, cachedFiles)
+    }
     
     private func cachePathForKey(key: String) -> String {
         return (cachePath as NSString).stringByAppendingPathComponent(key)
@@ -126,5 +252,11 @@ public class DataCache {
     
     private func normalizeKeyForRawKey(rawKey: String) -> String {
         return rawKey.stringByReplacingOccurrencesOfString("/", withString: "--")
+    }
+}
+
+extension Dictionary {
+    func keysSortedByValue(isOrderedBefore: (Value, Value) -> Bool) -> [Key] {
+        return Array(self).sort{ isOrderedBefore($0.1, $1.1) }.map{ $0.0 }
     }
 }
