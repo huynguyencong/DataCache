@@ -21,12 +21,16 @@ public class DataCache {
     private let ioQueue: dispatch_queue_t
     private let fileManager: NSFileManager! = nil
     
+    /// Name of cache
     public var name: String = ""
+    
+    /// Life time of disk cache, in second. Default is a week
     public var maxCachePeriodInSecond = DataCache.defaultMaxCachePeriodInSecond
     
-    // size allocate for disk cache, in byte
+    /// Size is allocated for disk cache, in byte. 0 mean no limit. Default is 0
     public var maxDiskCacheSize: UInt = 0
     
+    /// Specify distinc name param, it represents folder name for disk cache
     public init(name: String, path: String? = nil) {
         self.name = name
         
@@ -54,6 +58,7 @@ public class DataCache {
     public func writeData(data: NSData, forKey rawKey: String) {
         let key = normalizeKeyForRawKey(rawKey)
         
+    /// Write data for key
         memCache.setObject(data, forKey: key)
         writeDataToDisk(data, key: key)
     }
@@ -77,6 +82,7 @@ public class DataCache {
     
     public func readDataForKey(rawKey:String) -> NSData? {
         let key = normalizeKeyForRawKey(rawKey)
+    /// Read data for key
         var data = memCache.objectForKey(key) as? NSData
         
         if data == nil {
@@ -89,12 +95,14 @@ public class DataCache {
         return data
     }
     
+    /// Read data from disk for key
     public func readDataFromDiskForKey(key: String) -> NSData? {
         return self.fileManager.contentsAtPath(cachePathForKey(key))
     }
     
     // MARK: Read & write utils
     
+    /// Write a string for key
     public func writeString(value: String, forKey key: String) {
         let data = value.dataUsingEncoding(NSUTF8StringEncoding)
         
@@ -103,6 +111,7 @@ public class DataCache {
         }
     }
     
+    /// Read a string for key
     public func readStringForKey(key: String) -> String? {
         let data = readDataForKey(key)
         
@@ -115,10 +124,12 @@ public class DataCache {
     
     // MARK: Clean
     
+    /// Clean mem cache
     public func cleanMemCache() {
         memCache.removeAllObjects()
     }
     
+    /// Clean mem cache and expired disk cache
     public func clean() {
         cleanMemCache()
         cleanExpiredDiskCache()
@@ -131,8 +142,8 @@ public class DataCache {
         cleanExpiredDiskCacheWithCompletionHander(nil)
     }
     
+    // This method is from Kingfisher
     /**
-     This method is from Kingfisher
      Clean expired disk cache. This is an async operation.
      
      - parameter completionHandler: Called after the operation completes.
