@@ -53,6 +53,7 @@ public class DataCache {
         NSNotificationCenter.defaultCenter().removeObserver(self)
     }
     
+    
     // MARK: Store
     
     /// Write data for key
@@ -76,6 +77,7 @@ public class DataCache {
         }
     }
     
+    
     // MARK: Read
     
     /// Read data for key
@@ -97,27 +99,41 @@ public class DataCache {
         return self.fileManager.contentsAtPath(cachePathForKey(key))
     }
     
+    
     // MARK: Read & write utils
     
-    /// Write a string for key
-    public func writeString(value: String, forKey key: String) {
-        let data = value.dataUsingEncoding(NSUTF8StringEncoding)
-        
-        if let data = data {
-            writeData(data, forKey: key)
-        }
+    /// Write an object for key. This object must inherit from NSObject and implement NSCoding protocol. String, Array, Dictionary conform to this method. NOTE: Cannot write UIImage with this method
+    public func writeObject(value: NSCoding, forKey key: String) {
+        let data = NSKeyedArchiver.archivedDataWithRootObject(value)
+        writeData(data, forKey: key)
     }
     
-    /// Read a string for key
-    public func readStringForKey(key: String) -> String? {
+    /// Read an object for key. This object must inherit from NSObject and implement NSCoding protocol. String, Array, Dictionary conform to this method
+    public func readObjectForKey(key: String) -> NSObject? {
         let data = readDataForKey(key)
         
         if let data = data {
-            return String(data: data, encoding: NSUTF8StringEncoding)
+            return NSKeyedUnarchiver.unarchiveObjectWithData(data) as? NSObject
         }
         
         return nil
     }
+    
+    /// Read a string for key
+    public func readStringForKey(key: String) -> String? {
+        return readObjectForKey(key) as? String
+    }
+    
+    /// Read an array for key
+    public func readArrayForKey(key: String) -> Array<AnyObject>? {
+        return readObjectForKey(key) as? Array<AnyObject>
+    }
+    
+    /// Read a dictionary for key
+    public func readDictionaryForKey(key: String) -> Dictionary<String, AnyObject>? {
+        return readObjectForKey(key) as? Dictionary<String, AnyObject>
+    }
+    
     
     // MARK: Utils
     
@@ -125,6 +141,7 @@ public class DataCache {
     public func hasDataOnDiskForKey(key: String) -> Bool {
         return self.fileManager.fileExistsAtPath(self.cachePathForKey(key))
     }
+    
     
     // MARK: Clean
     
@@ -214,10 +231,10 @@ public class DataCache {
         })
     }
     
+    
     // MARK: Helpers
     
     // This method is from Kingfisher
-    
     private func travelCachedFiles() -> (URLsToDelete: [NSURL], diskCacheSize: UInt, cachedFiles: [NSURL: [NSObject: AnyObject]]) {
         
         let diskCacheURL = NSURL(fileURLWithPath: cachePath)
