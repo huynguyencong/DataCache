@@ -119,6 +119,13 @@ public class DataCache {
         return nil
     }
     
+    // MARK: Utils
+    
+    /// Check if has data on disk
+    public func hasDataOnDiskForKey(key: String) -> Bool {
+        return self.fileManager.fileExistsAtPath(self.cachePathForKey(key))
+    }
+    
     // MARK: Clean
     
     /// Clean mem cache
