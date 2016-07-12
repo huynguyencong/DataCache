@@ -54,11 +54,19 @@
                                     <action selector="readButtonTouched:" destination="BYZ-38-t0r" eventType="touchUpInside" id="0OH-qh-5n9"/>
                                 </connections>
                             </button>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="wj5-7Q-nmh">
+                                <rect key="frame" x="20" y="392" width="560" height="200"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="200" id="iEu-kO-9KD"/>
+                                </constraints>
+                            </imageView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstItem="wj5-7Q-nmh" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="20" symbolic="YES" id="0qF-Zx-xds"/>
                             <constraint firstItem="xKj-xw-B0U" firstAttribute="top" secondItem="KYz-QR-kAT" secondAttribute="bottom" constant="20" id="5Vx-Om-5Z1"/>
                             <constraint firstItem="3Fx-FR-Ym8" firstAttribute="leading" secondItem="Sqs-cE-1Ke" secondAttribute="trailing" constant="40" id="Bsp-jx-yFX"/>
+                            <constraint firstAttribute="trailing" secondItem="wj5-7Q-nmh" secondAttribute="trailing" constant="20" symbolic="YES" id="C9B-zP-Gak"/>
                             <constraint firstAttribute="trailingMargin" secondItem="KYz-QR-kAT" secondAttribute="trailing" constant="19" id="Cwg-aq-cMi"/>
                             <constraint firstItem="xKj-xw-B0U" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="DCZ-m9-gQh"/>
                             <constraint firstItem="KYz-QR-kAT" firstAttribute="leading" secondItem="3Fx-FR-Ym8" secondAttribute="leading" id="FYg-RR-5iO"/>
@@ -66,6 +74,7 @@
                             <constraint firstItem="koU-bS-ZDX" firstAttribute="leading" secondItem="Sqs-cE-1Ke" secondAttribute="leading" id="Tj9-qt-7y8"/>
                             <constraint firstItem="3Fx-FR-Ym8" firstAttribute="centerY" secondItem="Sqs-cE-1Ke" secondAttribute="centerY" id="YiS-Pd-OLh"/>
                             <constraint firstItem="cM0-IL-Erf" firstAttribute="centerY" secondItem="3Fx-FR-Ym8" secondAttribute="centerY" id="ae3-Rt-kDn"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="wj5-7Q-nmh" secondAttribute="bottom" constant="8" symbolic="YES" id="b6O-uq-4Gd"/>
                             <constraint firstItem="cM0-IL-Erf" firstAttribute="trailing" secondItem="KYz-QR-kAT" secondAttribute="trailing" id="cdC-90-ajR"/>
                             <constraint firstItem="KYz-QR-kAT" firstAttribute="centerY" secondItem="koU-bS-ZDX" secondAttribute="centerY" id="dJv-nV-cxF"/>
                             <constraint firstItem="koU-bS-ZDX" firstAttribute="top" secondItem="Sqs-cE-1Ke" secondAttribute="bottom" constant="40" id="npA-u7-bhk"/>
@@ -74,6 +83,7 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="imageView" destination="wj5-7Q-nmh" id="JQW-oh-Gh6"/>
                         <outlet property="keyTextField" destination="3Fx-FR-Ym8" id="gL1-1q-izs"/>
                         <outlet property="valueTextField" destination="KYz-QR-kAT" id="s3C-XG-2C7"/>
                     </connections>

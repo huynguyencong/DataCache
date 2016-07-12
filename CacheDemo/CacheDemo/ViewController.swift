@@ -13,23 +13,32 @@ class ViewController: UIViewController {
 
     @IBOutlet weak var keyTextField: UITextField!
     @IBOutlet weak var valueTextField: UITextField!
+    @IBOutlet weak var imageView: UIImageView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-
     
     @IBAction func readButtonTouched(sender: AnyObject) {
-        valueTextField.text = DataCache.defaultCache.readStringForKey(keyTextField.text!)
+        let key = keyTextField.text!
+        let cachedString = DataCache.defaultCache.readStringForKey(key)
+        valueTextField.text = cachedString
     }
 
     @IBAction func writeButtonTouched(sender: AnyObject) {
-        DataCache.defaultCache.writeString(valueTextField.text!, forKey: keyTextField.text!)
+        let string = valueTextField.text!
+        let key = keyTextField.text!
+        DataCache.defaultCache.writeObject(string, forKey: key)
+    }
+    
+    func writeImageToCache() {
+        let image = UIImage(named: "dog.jpg")
+        DataCache.defaultCache.writeImage(image!, forKey: "haha")
+    }
+    
+    func readImageFromCacheAndShow() {
+        let image = DataCache.defaultCache.readImageForKey("haha")
+        imageView.image = image
     }
 }
 
