@@ -52,9 +52,11 @@ public class DataCache {
     deinit {
         NSNotificationCenter.defaultCenter().removeObserver(self)
     }
-    
-    
+}
+
     // MARK: Store
+
+extension DataCache {
     
     /// Write data for key
     public func writeData(data: NSData, forKey key: String) {
@@ -76,9 +78,6 @@ public class DataCache {
             self.fileManager.createFileAtPath(self.cachePathForKey(key), contents: data, attributes: nil)
         }
     }
-    
-    
-    // MARK: Read
     
     /// Read data for key
     public func readDataForKey(key:String) -> NSData? {
@@ -135,15 +134,21 @@ public class DataCache {
     }
     
     
-    // MARK: Utils
+}
+
+// MARK: Utils
+
+extension DataCache {
     
     /// Check if has data on disk
     public func hasDataOnDiskForKey(key: String) -> Bool {
         return self.fileManager.fileExistsAtPath(self.cachePathForKey(key))
     }
-    
-    
+}
+
     // MARK: Clean
+
+extension DataCache {
     
     /// Clean mem cache
     public func cleanMemCache() {
@@ -230,9 +235,11 @@ public class DataCache {
             })
         })
     }
-    
-    
-    // MARK: Helpers
+}
+
+// MARK: Helpers
+
+extension DataCache {
     
     // This method is from Kingfisher
     private func travelCachedFiles() -> (URLsToDelete: [NSURL], diskCacheSize: UInt, cachedFiles: [NSURL: [NSObject: AnyObject]]) {
@@ -284,6 +291,7 @@ public class DataCache {
     }
 }
 
+// MARK: Other extensions
 extension Dictionary {
     func keysSortedByValue(isOrderedBefore: (Value, Value) -> Bool) -> [Key] {
         return Array(self).sort{ isOrderedBefore($0.1, $1.1) }.map{ $0.0 }
