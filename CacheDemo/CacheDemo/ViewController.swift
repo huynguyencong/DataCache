@@ -10,6 +10,8 @@ import UIKit
 import DataCache
 
 class ViewController: UIViewController {
+    
+    static let imageKey = "imageKey"
 
     @IBOutlet weak var keyTextField: UITextField!
     @IBOutlet weak var valueTextField: UITextField!
@@ -33,11 +35,11 @@ class ViewController: UIViewController {
     
     func writeImageToCache() {
         let image = UIImage(named: "dog.jpg")
-        DataCache.defaultCache.writeImage(image!, forKey: "haha")
+        DataCache.defaultCache.writeImage(image!, forKey: ViewController.imageKey)
     }
     
     func readImageFromCacheAndShow() {
-        let image = DataCache.defaultCache.readImageForKey("haha")
+        let image = DataCache.defaultCache.readImageForKey(ViewController.imageKey)
         imageView.image = image
     }
 }
