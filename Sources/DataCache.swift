@@ -8,6 +8,10 @@
 
 import UIKit
 
+public enum ImageFormat {
+    case Unknown, PNG, JPEG
+}
+
 public class DataCache {
     private static let cacheDirectoryPrefix = "com.nch.cache."
     private static let ioQueuePrefix = "com.nch.queue."
@@ -101,13 +105,16 @@ extension DataCache {
     
     // MARK: Read & write utils
     
-    /// Write an object for key. This object must inherit from NSObject and implement NSCoding protocol. String, Array, Dictionary conform to this method. NOTE: Cannot write UIImage with this method
+    
+    /// Write an object for key. This object must inherit from `NSObject` and implement `NSCoding` protocol. `String`, `Array`, `Dictionary` conform to this method.
+    ///
+    /// NOTE: Can't write `UIImage` with this method. Please use `writeImage(_:forKey:)` to write an image
     public func writeObject(value: NSCoding, forKey key: String) {
         let data = NSKeyedArchiver.archivedDataWithRootObject(value)
         writeData(data, forKey: key)
     }
     
-    /// Read an object for key. This object must inherit from NSObject and implement NSCoding protocol. String, Array, Dictionary conform to this method
+    /// Read an object for key. This object must inherit from `NSObject` and implement NSCoding protocol. `String`, `Array`, `Dictionary` conform to this method
     public func readObjectForKey(key: String) -> NSObject? {
         let data = readDataForKey(key)
         
@@ -133,7 +140,33 @@ extension DataCache {
         return readObjectForKey(key) as? Dictionary<String, AnyObject>
     }
     
+    // MARK: Read & write image
     
+    /// Write image for key. Please use this method to write an image instead of `writeObject(_:forKey:)`
+    public func writeImage(image: UIImage, forKey key: String, format: ImageFormat? = nil) {
+        var data: NSData? = nil
+        
+        if let format = format where format == .PNG {
+            data = UIImagePNGRepresentation(image)
+        }
+        else {
+            data = UIImageJPEGRepresentation(image, 0.9)
+        }
+        
+        if let data = data {
+            writeData(data, forKey: key)
+        }
+    }
+    
+    /// Read image for key. Please use this method to write an image instead of `readObjectForKey(_:)`
+    public func readImageForKey(key: String) -> UIImage? {
+        let data = readDataForKey(key)
+        if let data = data {
+            return UIImage(data: data, scale: 1.0)
+        }
+        
+        return nil
+    }
 }
 
 // MARK: Utils
@@ -146,7 +179,7 @@ extension DataCache {
     }
 }
 
-    // MARK: Clean
+// MARK: Clean
 
 extension DataCache {
     
