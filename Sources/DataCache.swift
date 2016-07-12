@@ -290,10 +290,3 @@ extension DataCache {
         return (cachePath as NSString).stringByAppendingPathComponent(fileName)
     }
 }
-
-// MARK: Other extensions
-extension Dictionary {
-    func keysSortedByValue(isOrderedBefore: (Value, Value) -> Bool) -> [Key] {
-        return Array(self).sort{ isOrderedBefore($0.1, $1.1) }.map{ $0.0 }
-    }
-}
