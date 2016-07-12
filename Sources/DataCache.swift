@@ -183,20 +183,30 @@ extension DataCache {
 
 extension DataCache {
     
-    /// Clean mem cache
-    public func cleanMemCache() {
-        memCache.removeAllObjects()
-    }
-    
     /// Clean mem cache and expired disk cache
     public func clean() {
         cleanMemCache()
         cleanExpiredDiskCache()
     }
     
-    /**
-     Clean expired disk cache. This is an async operation.
-     */
+    /// Clean cache by key
+    public func cleanByKey(key: String) {
+        memCache.removeObjectForKey(key)
+        
+        dispatch_async(ioQueue) { 
+            do {
+                try self.fileManager.removeItemAtPath(self.cachePathForKey(key))
+            }
+            catch {}
+        }
+    }
+    
+    /// Clean mem cache
+    private func cleanMemCache() {
+        memCache.removeAllObjects()
+    }
+    
+    /// Clean expired disk cache. This is an async operation.
     @objc public func cleanExpiredDiskCache() {
         cleanExpiredDiskCacheWithCompletionHander(nil)
     }
