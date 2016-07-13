@@ -177,19 +177,24 @@ extension DataCache {
     public func hasDataOnDiskForKey(key: String) -> Bool {
         return self.fileManager.fileExistsAtPath(self.cachePathForKey(key))
     }
+    
+    /// Check if has data on mem
+    public func hasDataOnMemForKey(key: String) -> Bool {
+        return (memCache.objectForKey(key) != nil)
+    }
 }
 
 // MARK: Clean
 
 extension DataCache {
     
-    /// Clean all mem cache and disk cache
+    /// Clean all mem cache and disk cache. This is an async operation.
     public func cleanAll() {
         cleanMemCache()
         cleanDiskCache()
     }
     
-    /// Clean cache by key
+    /// Clean cache by key. This is an async operation.
     public func cleanByKey(key: String) {
         memCache.removeObjectForKey(key)
         
