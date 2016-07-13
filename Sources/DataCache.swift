@@ -209,10 +209,12 @@ extension DataCache {
         memCache.removeAllObjects()
     }
     
-    private func cleanDiskCache() {
-        do {
-            try self.fileManager.removeItemAtPath(cachePath)
-        } catch {}
+    func cleanDiskCache() {
+        dispatch_async(ioQueue) {
+            do {
+                try self.fileManager.removeItemAtPath(self.cachePath)
+            } catch {}
+        }
     }
     
     /// Clean expired disk cache. This is an async operation.
