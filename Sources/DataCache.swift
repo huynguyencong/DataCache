@@ -13,17 +13,17 @@ public enum ImageFormat {
 }
 
 public class DataCache {
-    private static let cacheDirectoryPrefix = "com.nch.cache."
-    private static let ioQueuePrefix = "com.nch.queue."
-    private static let defaultMaxCachePeriodInSecond: NSTimeInterval = 60 * 60 * 24 * 7         // a week
+    static let cacheDirectoryPrefix = "com.nch.cache."
+    static let ioQueuePrefix = "com.nch.queue."
+    static let defaultMaxCachePeriodInSecond: NSTimeInterval = 60 * 60 * 24 * 7         // a week
     
     public static var defaultCache = DataCache(name: "default")
     
-    private var cachePath: String
+    var cachePath: String
     
-    private let memCache = NSCache()
-    private let ioQueue: dispatch_queue_t
-    private let fileManager: NSFileManager! = nil
+    let memCache = NSCache()
+    let ioQueue: dispatch_queue_t
+    let fileManager: NSFileManager! = nil
     
     /// Name of cache
     public var name: String = ""
@@ -62,13 +62,13 @@ public class DataCache {
 
 extension DataCache {
     
-    /// Write data for key
+    /// Write data for key. This is an async operation.
     public func writeData(data: NSData, forKey key: String) {
         memCache.setObject(data, forKey: key)
         writeDataToDisk(data, key: key)
     }
     
-    private func writeDataToDisk(data: NSData, key: String) {
+    func writeDataToDisk(data: NSData, key: String) {
         dispatch_async(ioQueue) { 
             if self.fileManager.fileExistsAtPath(self.cachePath) == false {
                 do {
@@ -205,7 +205,7 @@ extension DataCache {
         }
     }
     
-    private func cleanMemCache() {
+    func cleanMemCache() {
         memCache.removeAllObjects()
     }
     
@@ -293,7 +293,7 @@ extension DataCache {
 extension DataCache {
     
     // This method is from Kingfisher
-    private func travelCachedFiles() -> (URLsToDelete: [NSURL], diskCacheSize: UInt, cachedFiles: [NSURL: [NSObject: AnyObject]]) {
+    func travelCachedFiles() -> (URLsToDelete: [NSURL], diskCacheSize: UInt, cachedFiles: [NSURL: [NSObject: AnyObject]]) {
         
         let diskCacheURL = NSURL(fileURLWithPath: cachePath)
         let resourceKeys = [NSURLIsDirectoryKey, NSURLContentModificationDateKey, NSURLTotalFileAllocatedSizeKey]
@@ -336,7 +336,7 @@ extension DataCache {
         return (URLsToDelete, diskCacheSize, cachedFiles)
     }
     
-    private func cachePathForKey(key: String) -> String {
+    func cachePathForKey(key: String) -> String {
         let fileName = key.kf_MD5
         return (cachePath as NSString).stringByAppendingPathComponent(fileName)
     }
