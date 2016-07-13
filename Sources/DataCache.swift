@@ -183,10 +183,10 @@ extension DataCache {
 
 extension DataCache {
     
-    /// Clean mem cache and expired disk cache
-    public func clean() {
+    /// Clean all mem cache and disk cache
+    public func cleanAll() {
         cleanMemCache()
-        cleanExpiredDiskCache()
+        cleanDiskCache()
     }
     
     /// Clean cache by key
@@ -196,14 +196,18 @@ extension DataCache {
         dispatch_async(ioQueue) { 
             do {
                 try self.fileManager.removeItemAtPath(self.cachePathForKey(key))
-            }
-            catch {}
+            } catch {}
         }
     }
     
-    /// Clean mem cache
     private func cleanMemCache() {
         memCache.removeAllObjects()
+    }
+    
+    private func cleanDiskCache() {
+        do {
+            try self.fileManager.removeItemAtPath(cachePath)
+        } catch {}
     }
     
     /// Clean expired disk cache. This is an async operation.
@@ -227,8 +231,7 @@ extension DataCache {
             for fileURL in URLsToDelete {
                 do {
                     try self.fileManager.removeItemAtURL(fileURL)
-                } catch _ {
-                }
+                } catch {}
             }
             
             if self.maxDiskCacheSize > 0 && diskCacheSize > self.maxDiskCacheSize {
@@ -250,9 +253,7 @@ extension DataCache {
                     
                     do {
                         try self.fileManager.removeItemAtURL(fileURL)
-                    } catch {
-                        
-                    }
+                    } catch {}
                     
                     URLsToDelete.append(fileURL)
                     
