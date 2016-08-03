@@ -23,7 +23,7 @@ public class DataCache {
     
     let memCache = NSCache()
     let ioQueue: dispatch_queue_t
-    let fileManager: NSFileManager! = nil
+    let fileManager: NSFileManager
     
     /// Name of cache
     public var name: String = ""
@@ -43,9 +43,7 @@ public class DataCache {
         
         ioQueue = dispatch_queue_create(DataCache.ioQueuePrefix + name, DISPATCH_QUEUE_CONCURRENT)
         
-        dispatch_async(ioQueue) { 
-            self.fileManager = NSFileManager()
-        }
+        self.fileManager = NSFileManager()
         
         #if !os(OSX) && !os(watchOS)
             NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(DataCache.cleanExpiredDiskCache), name: UIApplicationWillTerminateNotification, object: nil)
