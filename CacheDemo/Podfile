@@ -2,4 +2,6 @@ platform :ios, "8.0"
 
 use_frameworks!
 
-pod 'DataCache', :path => '../'
+target 'CacheDemo' do
+	pod 'DataCache', :path => '../'
+end
