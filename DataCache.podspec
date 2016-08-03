@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = 'DataCache'
-  s.version      = '1.0'
+  s.version      = '1.1'
   s.summary      = 'Simplest way to cache data on memory and disk'
   s.homepage     = 'https://github.com/huynguyencong/DataCache'
   s.license      = { :type => 'MIT', :file => 'LICENSE' }
