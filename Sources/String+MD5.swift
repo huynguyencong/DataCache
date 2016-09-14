@@ -23,7 +23,7 @@ import Foundation
 
 extension String {
     var kf_MD5: String {
-        if let data = dataUsingEncoding(NSUTF8StringEncoding) {
+        if let data = data(using: String.Encoding.utf8) {
             let MD5Calculator = MD5(Array(UnsafeBufferPointer(start: UnsafePointer<UInt8>(data.bytes), count: data.length)))
             let MD5Data = MD5Calculator.calculate()
 
@@ -41,27 +41,27 @@ extension String {
 
 /** array of bytes, little-endian representation */
 func arrayOfBytes<T>(value: T, length: Int? = nil) -> [UInt8] {
-    let totalBytes = length ?? (sizeofValue(value) * 8)
+    let totalBytes = length ?? (MemoryLayout.size(ofValue: value) * 8)
     
-    let valuePointer = UnsafeMutablePointer<T>.alloc(1)
-    valuePointer.memory = value
+    var valuePointer = UnsafeMutablePointer<T>.allocate(capacity: 1)
+    valuePointer.pointee = value
     
     let bytesPointer = UnsafeMutablePointer<UInt8>(valuePointer)
-    var bytes = [UInt8](count: totalBytes, repeatedValue: 0)
-    for j in 0..<min(sizeof(T), totalBytes) {
-        bytes[totalBytes - 1 - j] = (bytesPointer + j).memory
+    var bytes = [UInt8](repeating: 0, count: totalBytes)
+    for j in 0..<min(MemoryLayout<T>.size, totalBytes) {
+        bytes[totalBytes - 1 - j] = (bytesPointer + j).pointee
     }
     
-    valuePointer.destroy()
-    valuePointer.dealloc(1)
+    valuePointer.deinitialize()
+    valuePointer.deallocate(capacity: 1)
     
     return bytes
 }
 
 extension Int {
     /** Array of bytes with optional padding (little-endian) */
-    func bytes(totalBytes: Int = sizeof(Int)) -> [UInt8] {
-        return arrayOfBytes(self, length: totalBytes)
+    func bytes(totalBytes: Int = MemoryLayout<Int>.size) -> [UInt8] {
+        return arrayOfBytes(value: self, length: totalBytes)
     }
     
 }
@@ -70,7 +70,7 @@ extension NSMutableData {
     
     /** Convenient way to append bytes */
     func appendBytes(arrayOfBytes: [UInt8]) {
-        appendBytes(arrayOfBytes, length: arrayOfBytes.count)
+        append(arrayOfBytes, length: arrayOfBytes.count)
     }
     
 }
@@ -99,7 +99,7 @@ extension HashProtocol {
             msgLength += 1
         }
         
-        tmpMessage += Array<UInt8>(count: counter, repeatedValue: 0)
+        tmpMessage += Array<UInt8>(repeating: 0, count: counter)
         return tmpMessage
     }
 }
@@ -108,10 +108,10 @@ func toUInt32Array(slice: ArraySlice<UInt8>) -> Array<UInt32> {
     var result = Array<UInt32>()
     result.reserveCapacity(16)
     
-    for idx in slice.startIndex.stride(to: slice.endIndex, by: sizeof(UInt32)) {
-        let d0 = UInt32(slice[idx.advancedBy(3)]) << 24
-        let d1 = UInt32(slice[idx.advancedBy(2)]) << 16
-        let d2 = UInt32(slice[idx.advancedBy(1)]) << 8
+    for idx in stride(from: slice.startIndex, to: slice.endIndex, by: MemoryLayout<UInt32>.size) {
+        let d0 = UInt32(slice[idx.advanced(by: 3)]) << 24
+        let d1 = UInt32(slice[idx.advanced(by: 2)]) << 16
+        let d2 = UInt32(slice[idx.advanced(by: 1)]) << 8
         let d3 = UInt32(slice[idx])
         let val: UInt32 = d0 | d1 | d2 | d3
                          
@@ -120,7 +120,7 @@ func toUInt32Array(slice: ArraySlice<UInt8>) -> Array<UInt32> {
     return result
 }
 
-struct BytesGenerator: GeneratorType {
+struct BytesGenerator: IteratorProtocol {
     
     let chunkSize: Int
     let data: [UInt8]
@@ -140,11 +140,11 @@ struct BytesGenerator: GeneratorType {
     }
 }
 
-struct BytesSequence: SequenceType {
+struct BytesSequence: Sequence {
     let chunkSize: Int
     let data: [UInt8]
     
-    func generate() -> BytesGenerator {
+    func makeIterator() -> BytesGenerator {
         return BytesGenerator(chunkSize: chunkSize, data: data)
     }
 }
@@ -189,7 +189,7 @@ class MD5: HashProtocol {
     private let hashes: [UInt32] = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476]
     
     func calculate() -> [UInt8] {
-        var tmpMessage = prepare(64)
+        var tmpMessage = prepare(len: 64)
         tmpMessage.reserveCapacity(tmpMessage.count + 4)
         
         // hash values
@@ -197,15 +197,15 @@ class MD5: HashProtocol {
         
         // Step 2. Append Length a 64-bit representation of lengthInBits
         let lengthInBits = (message.count * 8)
-        let lengthBytes = lengthInBits.bytes(64 / 8)
-        tmpMessage += lengthBytes.reverse()
+        let lengthBytes = lengthInBits.bytes(totalBytes: 64 / 8)
+        tmpMessage += lengthBytes.reversed()
 
         // Process the message in successive 512-bit chunks:
         let chunkSizeBytes = 512 / 8 // 64
 
         for chunk in BytesSequence(chunkSize: chunkSizeBytes, data: tmpMessage) {
             // break chunk into sixteen 32-bit words M[j], 0 ≤ j ≤ 15
-            var M = toUInt32Array(chunk)
+            var M = toUInt32Array(slice: chunk)
             assert(M.count == 16, "Invalid array")
             
             // Initialize hash value for this chunk:
@@ -244,7 +244,7 @@ class MD5: HashProtocol {
                 dTemp = D
                 D = C
                 C = B
-                B = B &+ rotateLeft((A &+ F &+ sines[j] &+ M[g]), bits: shifts[j])
+                B = B &+ rotateLeft(value: (A &+ F &+ sines[j] &+ M[g]), bits: shifts[j])
                 A = dTemp
             }
             
