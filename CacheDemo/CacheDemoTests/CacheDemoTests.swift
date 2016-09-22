@@ -34,19 +34,19 @@ class CacheDemoTests: XCTestCase {
         let str = "testWriteCacheToDisk"
         let key = "testWriteCacheToDiskKey"
         
-        let expectation = expectationWithDescription("Write to disk is an asynchonous operation")
+        let expectation = self.expectation(description: "Write to disk is an asynchonous operation")
         
         DataCache.defaultCache.writeObject(str, forKey: key)
         DataCache.defaultCache.cleanMemCache()
         
         // wait for write to disk successful
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (Int64)(1 * NSEC_PER_SEC)), dispatch_get_main_queue()) {
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double((Int64)(1 * NSEC_PER_SEC)) / Double(NSEC_PER_SEC)) {
             let cachedString = DataCache.defaultCache.readStringForKey(key)
             XCTAssert(cachedString == str)
             expectation.fulfill()
         }
         
-        waitForExpectationsWithTimeout(2) { (error) in
+        waitForExpectations(timeout: 2) { (error) in
             if let error = error {
                 XCTFail("waitForExpectationsWithTimeout errored: \(error)")
             }
@@ -60,7 +60,7 @@ class CacheDemoTests: XCTestCase {
         DataCache.defaultCache.writeImage(image!, forKey: key)
         let cachedImage = DataCache.defaultCache.readImageForKey(key)
         
-        if let image = image, cachedImage = cachedImage {
+        if let image = image, let cachedImage = cachedImage {
             XCTAssert(image.size == cachedImage.size)
         }
         else {
@@ -71,18 +71,18 @@ class CacheDemoTests: XCTestCase {
     func testHasDataOnDiskForKey() {
         let str = "testHasDataOnDiskForKey"
         let key = "testHasDataOnDiskForKeyKey"
-        let expectation = expectationWithDescription("Write to disk is an asynchonous operation")
+        let expectation = self.expectation(description: "Write to disk is an asynchonous operation")
         
         DataCache.defaultCache.writeObject(str, forKey: key)
         
         // wait for write to disk successful
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (Int64)(1 * NSEC_PER_SEC)), dispatch_get_main_queue()) {
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double((Int64)(1 * NSEC_PER_SEC)) / Double(NSEC_PER_SEC)) {
             let hasDataOnDisk = DataCache.defaultCache.hasDataOnDiskForKey(key)
             XCTAssert(hasDataOnDisk == true)
             expectation.fulfill()
         }
         
-        waitForExpectationsWithTimeout(2) { (error) in
+        waitForExpectations(timeout: 2) { (error) in
             if let error = error {
                 XCTFail("waitForExpectationsWithTimeout errored: \(error)")
             }
@@ -102,21 +102,21 @@ class CacheDemoTests: XCTestCase {
     func testCleanCache() {
         let str = "testCleanCache"
         let key = "testCleanCacheKey"
-        let expectation = expectationWithDescription("Clean is an asynchonous operation")
+        let expectation = self.expectation(description: "Clean is an asynchonous operation")
         
         DataCache.defaultCache.writeObject(str, forKey: key)
         
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (Int64)(1 * NSEC_PER_SEC)), dispatch_get_main_queue()) {
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double((Int64)(1 * NSEC_PER_SEC)) / Double(NSEC_PER_SEC)) {
             DataCache.defaultCache.cleanAll()
             
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (Int64)(1 * NSEC_PER_SEC)), dispatch_get_main_queue()) {
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double((Int64)(1 * NSEC_PER_SEC)) / Double(NSEC_PER_SEC)) {
                 let cachedString = DataCache.defaultCache.readStringForKey(key)
                 XCTAssert(cachedString == nil)
                 expectation.fulfill()
             }
         }
         
-        waitForExpectationsWithTimeout(3) { (error) in
+        waitForExpectations(timeout: 3) { (error) in
             if let error = error {
                 XCTFail("waitForExpectationsWithTimeout errored: \(error)")
             }

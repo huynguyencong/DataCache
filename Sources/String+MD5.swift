@@ -10,23 +10,28 @@
 // This is the original copyright notice:
 
 /*
-Copyright (C) 2014 Marcin Krzyżanowski <marcin.krzyzanowski@gmail.com>
-This software is provided 'as-is', without any express or implied warranty.
-In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose,including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:
-- The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation is required.
-- Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
-- This notice may not be removed or altered from any source or binary distribution.
-*/
+ Copyright (C) 2014 Marcin Krzyżanowski <marcin.krzyzanowski@gmail.com>
+ This software is provided 'as-is', without any express or implied warranty.
+ In no event will the authors be held liable for any damages arising from the use of this software.
+ Permission is granted to anyone to use this software for any purpose,including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:
+ - The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation is required.
+ - Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+ - This notice may not be removed or altered from any source or binary distribution.
+ */
 
 import Foundation
 
 extension String {
-    var kf_MD5: String {
-        if let data = data(using: String.Encoding.utf8) {
-            let MD5Calculator = MD5(Array(UnsafeBufferPointer(start: UnsafePointer<UInt8>(data.bytes), count: data.length)))
+    var md5: String {
+        if let data = self.data(using: .utf8, allowLossyConversion: true) {
+            
+            let message = data.withUnsafeBytes { bytes -> [UInt8] in
+                return Array(UnsafeBufferPointer(start: bytes, count: data.count))
+            }
+            
+            let MD5Calculator = MD5(message)
             let MD5Data = MD5Calculator.calculate()
-
+            
             let MD5String = NSMutableString()
             for c in MD5Data {
                 MD5String.appendFormat("%02x", c)
@@ -39,17 +44,20 @@ extension String {
     }
 }
 
+
 /** array of bytes, little-endian representation */
-func arrayOfBytes<T>(value: T, length: Int? = nil) -> [UInt8] {
-    let totalBytes = length ?? (MemoryLayout.size(ofValue: value) * 8)
+func arrayOfBytes<T>(_ value: T, length: Int? = nil) -> [UInt8] {
+    let totalBytes = length ?? (MemoryLayout<T>.size * 8)
     
-    var valuePointer = UnsafeMutablePointer<T>.allocate(capacity: 1)
+    let valuePointer = UnsafeMutablePointer<T>.allocate(capacity: 1)
     valuePointer.pointee = value
     
-    let bytesPointer = UnsafeMutablePointer<UInt8>(valuePointer)
-    var bytes = [UInt8](repeating: 0, count: totalBytes)
-    for j in 0..<min(MemoryLayout<T>.size, totalBytes) {
-        bytes[totalBytes - 1 - j] = (bytesPointer + j).pointee
+    let bytes = valuePointer.withMemoryRebound(to: UInt8.self, capacity: totalBytes) { (bytesPointer) -> [UInt8] in
+        var bytes = [UInt8](repeating: 0, count: totalBytes)
+        for j in 0..<min(MemoryLayout<T>.size, totalBytes) {
+            bytes[totalBytes - 1 - j] = (bytesPointer + j).pointee
+        }
+        return bytes
     }
     
     valuePointer.deinitialize()
@@ -60,8 +68,8 @@ func arrayOfBytes<T>(value: T, length: Int? = nil) -> [UInt8] {
 
 extension Int {
     /** Array of bytes with optional padding (little-endian) */
-    func bytes(totalBytes: Int = MemoryLayout<Int>.size) -> [UInt8] {
-        return arrayOfBytes(value: self, length: totalBytes)
+    func bytes(_ totalBytes: Int = MemoryLayout<Int>.size) -> [UInt8] {
+        return arrayOfBytes(self, length: totalBytes)
     }
     
 }
@@ -69,7 +77,7 @@ extension Int {
 extension NSMutableData {
     
     /** Convenient way to append bytes */
-    func appendBytes(arrayOfBytes: [UInt8]) {
+    func appendBytes(_ arrayOfBytes: [UInt8]) {
         append(arrayOfBytes, length: arrayOfBytes.count)
     }
     
@@ -79,12 +87,12 @@ protocol HashProtocol {
     var message: Array<UInt8> { get }
     
     /** Common part for hash calculation. Prepare header data. */
-    func prepare(len: Int) -> Array<UInt8>
+    func prepare(_ len: Int) -> Array<UInt8>
 }
 
 extension HashProtocol {
     
-    func prepare(len: Int) -> Array<UInt8> {
+    func prepare(_ len: Int) -> Array<UInt8> {
         var tmpMessage = message
         
         // Step 1. Append Padding Bits
@@ -104,7 +112,7 @@ extension HashProtocol {
     }
 }
 
-func toUInt32Array(slice: ArraySlice<UInt8>) -> Array<UInt32> {
+func toUInt32Array(_ slice: ArraySlice<UInt8>) -> Array<UInt32> {
     var result = Array<UInt32>()
     result.reserveCapacity(16)
     
@@ -114,13 +122,13 @@ func toUInt32Array(slice: ArraySlice<UInt8>) -> Array<UInt32> {
         let d2 = UInt32(slice[idx.advanced(by: 1)]) << 8
         let d3 = UInt32(slice[idx])
         let val: UInt32 = d0 | d1 | d2 | d3
-                         
+        
         result.append(val)
     }
     return result
 }
 
-struct BytesGenerator: IteratorProtocol {
+struct BytesIterator: IteratorProtocol {
     
     let chunkSize: Int
     let data: [UInt8]
@@ -144,12 +152,12 @@ struct BytesSequence: Sequence {
     let chunkSize: Int
     let data: [UInt8]
     
-    func makeIterator() -> BytesGenerator {
-        return BytesGenerator(chunkSize: chunkSize, data: data)
+    func makeIterator() -> BytesIterator {
+        return BytesIterator(chunkSize: chunkSize, data: data)
     }
 }
 
-func rotateLeft(value: UInt32, bits: UInt32) -> UInt32 {
+func rotateLeft(_ value: UInt32, bits: UInt32) -> UInt32 {
     return ((value << bits) & 0xFFFFFFFF) | (value >> (32 - bits))
 }
 
@@ -170,26 +178,26 @@ class MD5: HashProtocol {
     
     /** binary integer part of the sines of integers (Radians) */
     private let sines: [UInt32] = [0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
-                               0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
-                               0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
-                               0x6b901122, 0xfd987193, 0xa679438e, 0x49b40821,
-                               0xf61e2562, 0xc040b340, 0x265e5a51, 0xe9b6c7aa,
-                               0xd62f105d, 0x02441453, 0xd8a1e681, 0xe7d3fbc8,
-                               0x21e1cde6, 0xc33707d6, 0xf4d50d87, 0x455a14ed,
-                               0xa9e3e905, 0xfcefa3f8, 0x676f02d9, 0x8d2a4c8a,
-                               0xfffa3942, 0x8771f681, 0x6d9d6122, 0xfde5380c,
-                               0xa4beea44, 0x4bdecfa9, 0xf6bb4b60, 0xbebfbc70,
-                               0x289b7ec6, 0xeaa127fa, 0xd4ef3085, 0x4881d05,
-                               0xd9d4d039, 0xe6db99e5, 0x1fa27cf8, 0xc4ac5665,
-                               0xf4292244, 0x432aff97, 0xab9423a7, 0xfc93a039,
-                               0x655b59c3, 0x8f0ccc92, 0xffeff47d, 0x85845dd1,
-                               0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1,
-                               0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391]
+                                   0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
+                                   0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
+                                   0x6b901122, 0xfd987193, 0xa679438e, 0x49b40821,
+                                   0xf61e2562, 0xc040b340, 0x265e5a51, 0xe9b6c7aa,
+                                   0xd62f105d, 0x02441453, 0xd8a1e681, 0xe7d3fbc8,
+                                   0x21e1cde6, 0xc33707d6, 0xf4d50d87, 0x455a14ed,
+                                   0xa9e3e905, 0xfcefa3f8, 0x676f02d9, 0x8d2a4c8a,
+                                   0xfffa3942, 0x8771f681, 0x6d9d6122, 0xfde5380c,
+                                   0xa4beea44, 0x4bdecfa9, 0xf6bb4b60, 0xbebfbc70,
+                                   0x289b7ec6, 0xeaa127fa, 0xd4ef3085, 0x4881d05,
+                                   0xd9d4d039, 0xe6db99e5, 0x1fa27cf8, 0xc4ac5665,
+                                   0xf4292244, 0x432aff97, 0xab9423a7, 0xfc93a039,
+                                   0x655b59c3, 0x8f0ccc92, 0xffeff47d, 0x85845dd1,
+                                   0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1,
+                                   0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391]
     
     private let hashes: [UInt32] = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476]
     
     func calculate() -> [UInt8] {
-        var tmpMessage = prepare(len: 64)
+        var tmpMessage = prepare(64)
         tmpMessage.reserveCapacity(tmpMessage.count + 4)
         
         // hash values
@@ -197,15 +205,15 @@ class MD5: HashProtocol {
         
         // Step 2. Append Length a 64-bit representation of lengthInBits
         let lengthInBits = (message.count * 8)
-        let lengthBytes = lengthInBits.bytes(totalBytes: 64 / 8)
+        let lengthBytes = lengthInBits.bytes(64 / 8)
         tmpMessage += lengthBytes.reversed()
-
+        
         // Process the message in successive 512-bit chunks:
         let chunkSizeBytes = 512 / 8 // 64
-
+        
         for chunk in BytesSequence(chunkSize: chunkSizeBytes, data: tmpMessage) {
             // break chunk into sixteen 32-bit words M[j], 0 ≤ j ≤ 15
-            var M = toUInt32Array(slice: chunk)
+            var M = toUInt32Array(chunk)
             assert(M.count == 16, "Invalid array")
             
             // Initialize hash value for this chunk:
@@ -244,7 +252,7 @@ class MD5: HashProtocol {
                 dTemp = D
                 D = C
                 C = B
-                B = B &+ rotateLeft(value: (A &+ F &+ sines[j] &+ M[g]), bits: shifts[j])
+                B = B &+ rotateLeft((A &+ F &+ sines[j] &+ M[g]), bits: shifts[j])
                 A = dTemp
             }
             

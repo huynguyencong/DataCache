@@ -9,15 +9,15 @@
 import UIKit
 
 public enum ImageFormat {
-    case Unknown, PNG, JPEG
+    case unknown, png, jpeg
 }
 
-public class DataCache {
+open class DataCache {
     static let cacheDirectoryPrefix = "com.nch.cache."
     static let ioQueuePrefix = "com.nch.queue."
     static let defaultMaxCachePeriodInSecond: TimeInterval = 60 * 60 * 24 * 7         // a week
     
-    public static var defaultCache = DataCache(name: "default")
+    open static var defaultCache = DataCache(name: "default")
     
     var cachePath: String
     
@@ -26,13 +26,13 @@ public class DataCache {
     let fileManager: FileManager
     
     /// Name of cache
-    public var name: String = ""
+    open var name: String = ""
     
     /// Life time of disk cache, in second. Default is a week
-    public var maxCachePeriodInSecond = DataCache.defaultMaxCachePeriodInSecond
+    open var maxCachePeriodInSecond = DataCache.defaultMaxCachePeriodInSecond
     
     /// Size is allocated for disk cache, in byte. 0 mean no limit. Default is 0
-    public var maxDiskCacheSize: UInt = 0
+    open var maxDiskCacheSize: UInt = 0
     
     /// Specify distinc name param, it represents folder name for disk cache
     public init(name: String, path: String? = nil) {
@@ -144,7 +144,7 @@ extension DataCache {
     public func writeImage(image: UIImage, forKey key: String, format: ImageFormat? = nil) {
         var data: Data? = nil
         
-        if let format = format, format == .PNG {
+        if let format = format, format == .png {
             data = UIImagePNGRepresentation(image)
         }
         else {
@@ -329,7 +329,7 @@ extension DataCache {
     }
     
     func cachePathFor(key: String) -> String {
-        let fileName = key.kf_MD5
+        let fileName = key.md5
         return (cachePath as NSString).appendingPathComponent(fileName)
     }
 }
