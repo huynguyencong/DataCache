@@ -21,25 +21,25 @@ class ViewController: UIViewController {
         super.viewDidLoad()
     }
     
-    @IBAction func readButtonTouched(sender: AnyObject) {
+    @IBAction func readButtonTouched(_ sender: AnyObject) {
         let key = keyTextField.text!
-        let cachedString = DataCache.defaultCache.readStringForKey(key)
+        let cachedString = DataCache.defaultCache.readStringForKey(key: key)
         valueTextField.text = cachedString
     }
 
-    @IBAction func writeButtonTouched(sender: AnyObject) {
+    @IBAction func writeButtonTouched(_ sender: AnyObject) {
         let string = valueTextField.text!
         let key = keyTextField.text!
-        DataCache.defaultCache.writeObject(string, forKey: key)
+        DataCache.defaultCache.writeObject(value: string as NSCoding, forKey: key)
     }
     
     func writeImageToCache() {
         let image = UIImage(named: "dog.jpg")
-        DataCache.defaultCache.writeImage(image!, forKey: ViewController.imageKey)
+        DataCache.defaultCache.writeImage(image: image!, forKey: ViewController.imageKey)
     }
     
     func readImageFromCacheAndShow() {
-        let image = DataCache.defaultCache.readImageForKey(ViewController.imageKey)
+        let image = DataCache.defaultCache.readImageForKey(key: ViewController.imageKey)
         imageView.image = image
     }
 }

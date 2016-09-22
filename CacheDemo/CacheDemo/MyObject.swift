@@ -8,21 +8,21 @@
 
 import UIKit
 
-public class MyObject: NSObject, NSCoding {
-    public var name = ""
-    public var yearOld = 0
+open class MyObject: NSObject, NSCoding {
+    open var name = ""
+    open var yearOld = 0
     
     override init() {
         
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        self.name = aDecoder.decodeObjectForKey("name") as! String
-        self.yearOld = aDecoder.decodeIntegerForKey("yearOld")
+        self.name = aDecoder.decodeObject(forKey: "name") as! String
+        self.yearOld = aDecoder.decodeInteger(forKey: "yearOld")
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeObject(self.name, forKey: "name")
-        aCoder.encodeInteger(self.yearOld, forKey: "yearOld")
+    open func encode(with aCoder: NSCoder) {
+        aCoder.encode(self.name, forKey: "name")
+        aCoder.encode(self.yearOld, forKey: "yearOld")
     }
 }
