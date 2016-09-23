@@ -20,7 +20,7 @@ Add below lines to Podfile:
 ```
 use_frameworks!
 
-pod DataCache
+pod 'DataCache'
 ```
 
 Note: If above pod doesn't work, try using below pod defination in Podfile:  
