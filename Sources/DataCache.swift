@@ -61,7 +61,7 @@ open class DataCache {
 extension DataCache {
     
     /// Write data for key. This is an async operation.
-    public func writeData(data: Data, forKey key: String) {
+    public func write(data: Data, forKey key: String) {
         memCache.setObject(data as AnyObject, forKey: key as AnyObject)
         writeDataToDisk(data: data, key: key)
     }
@@ -77,16 +77,16 @@ extension DataCache {
                 }
             }
             
-            self.fileManager.createFile(atPath: self.cachePathFor(key: key), contents: data, attributes: nil)
+            self.fileManager.createFile(atPath: self.cachePath(forKey: key), contents: data, attributes: nil)
         }
     }
     
     /// Read data for key
-    public func readDataForKey(key:String) -> Data? {
+    public func readData(forKey key:String) -> Data? {
         var data = memCache.object(forKey: key as AnyObject) as? Data
         
         if data == nil {
-            if let dataFromDisk = readDataFromDiskForKey(key: key) {
+            if let dataFromDisk = readDataFromDisk(forKey: key) {
                 data = dataFromDisk
                 memCache.setObject(dataFromDisk as AnyObject, forKey: key as AnyObject)
             }
@@ -96,8 +96,8 @@ extension DataCache {
     }
     
     /// Read data from disk for key
-    public func readDataFromDiskForKey(key: String) -> Data? {
-        return self.fileManager.contents(atPath: cachePathFor(key: key))
+    public func readDataFromDisk(forKey key: String) -> Data? {
+        return self.fileManager.contents(atPath: cachePath(forKey: key))
     }
     
     
@@ -107,14 +107,14 @@ extension DataCache {
     /// Write an object for key. This object must inherit from `NSObject` and implement `NSCoding` protocol. `String`, `Array`, `Dictionary` conform to this method.
     ///
     /// NOTE: Can't write `UIImage` with this method. Please use `writeImage(_:forKey:)` to write an image
-    public func writeObject(value: NSCoding, forKey key: String) {
-        let data = NSKeyedArchiver.archivedData(withRootObject: value)
-        writeData(data: data, forKey: key)
+    public func write(object: NSCoding, forKey key: String) {
+        let data = NSKeyedArchiver.archivedData(withRootObject: object)
+        write(data: data, forKey: key)
     }
     
     /// Read an object for key. This object must inherit from `NSObject` and implement NSCoding protocol. `String`, `Array`, `Dictionary` conform to this method
-    public func readObjectForKey(key: String) -> NSObject? {
-        let data = readDataForKey(key: key)
+    public func readObject(forKey key: String) -> NSObject? {
+        let data = readData(forKey: key)
         
         if let data = data {
             return NSKeyedUnarchiver.unarchiveObject(with: data) as? NSObject
@@ -124,24 +124,24 @@ extension DataCache {
     }
     
     /// Read a string for key
-    public func readStringForKey(key: String) -> String? {
-        return readObjectForKey(key: key) as? String
+    public func readString(forKey key: String) -> String? {
+        return readObject(forKey: key) as? String
     }
     
     /// Read an array for key
-    public func readArrayForKey(key: String) -> Array<Any>? {
-        return readObjectForKey(key: key) as? Array<Any>
+    public func readArray(forKey key: String) -> Array<Any>? {
+        return readObject(forKey: key) as? Array<Any>
     }
     
     /// Read a dictionary for key
-    public func readDictionaryForKey(key: String) -> Dictionary<String, Any>? {
-        return readObjectForKey(key: key) as? Dictionary<String, Any>
+    public func readDictionary(forKey key: String) -> Dictionary<String, Any>? {
+        return readObject(forKey: key) as? Dictionary<String, Any>
     }
     
     // MARK: Read & write image
     
     /// Write image for key. Please use this method to write an image instead of `writeObject(_:forKey:)`
-    public func writeImage(image: UIImage, forKey key: String, format: ImageFormat? = nil) {
+    public func write(image: UIImage, forKey key: String, format: ImageFormat? = nil) {
         var data: Data? = nil
         
         if let format = format, format == .png {
@@ -152,13 +152,13 @@ extension DataCache {
         }
         
         if let data = data {
-            writeData(data: data, forKey: key)
+            write(data: data, forKey: key)
         }
     }
     
     /// Read image for key. Please use this method to write an image instead of `readObjectForKey(_:)`
     public func readImageForKey(key: String) -> UIImage? {
-        let data = readDataForKey(key: key)
+        let data = readData(forKey: key)
         if let data = data {
             return UIImage(data: data, scale: 1.0)
         }
@@ -173,7 +173,7 @@ fileprivate extension DataCache {
     
     /// Check if has data on disk
     public func hasDataOnDiskForKey(key: String) -> Bool {
-        return self.fileManager.fileExists(atPath: self.cachePathFor(key: key))
+        return self.fileManager.fileExists(atPath: self.cachePath(forKey: key))
     }
     
     /// Check if has data on mem
@@ -193,12 +193,12 @@ fileprivate extension DataCache {
     }
     
     /// Clean cache by key. This is an async operation.
-    public func cleanByKey(key: String) {
+    public func clean(byKey key: String) {
         memCache.removeObject(forKey: key as AnyObject)
         
         ioQueue.async {
             do {
-                try self.fileManager.removeItem(atPath: self.cachePathFor(key: key))
+                try self.fileManager.removeItem(atPath: self.cachePath(forKey: key))
             } catch {}
         }
     }
@@ -328,7 +328,7 @@ extension DataCache {
         return (URLsToDelete, diskCacheSize, cachedFiles)
     }
     
-    func cachePathFor(key: String) -> String {
+    func cachePath(forKey key: String) -> String {
         let fileName = key.md5
         return (cachePath as NSString).appendingPathComponent(fileName)
     }
