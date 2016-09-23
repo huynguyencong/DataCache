@@ -11,7 +11,7 @@ There are many reasons why you should use this cache  libary:
 
 ### Compatible
 - iOS 8 or later (if you want to use it on iOS 7, you can add files manually)
-- Swift 2.0 or later
+- Swift 3.x (version 1.2 and later), Swift 2.x (version 1.1 and prior)
 
 ### Usage
 #### Cocoapod
@@ -37,62 +37,63 @@ NOTE: With `UIImage`, read next section.
 
 ```
 let myString = "Hello Cache"
-DataCache.defaultCache.writeObject(myString, forKey: "myKey")
+DataCache.instance.write(object: myString, forKey: "myKey")
 ```
 
 ```
-DataCache.defaultCache.readObjectForKey("myKey") as? String
+DataCache.instance.readObject(forKey: "myKey") as? String
 ```
 
-You can use some utility methods to avoid casting step (`as?` keyword): `readStringForKey(_:)`, `readArrayForKey(_:)`, `readDictionaryForKey(_:)`. With other types, please use `as?` to cast object to your type.
+You can use some utility methods to avoid casting step (`as?` keyword): `readString(forKey:)`, `readArray(forKey:)`, `readDictionary(forKey:)`. With other types, please use `as?` to cast object to your type.
 
 ##### Cache and Read an image
 
 ```
 let image = UIImage(named: "myImageName")
-DataCache.defaultCache.writeImage(image!, forKey: "imageKey")
+DataCache.instance.write(image: image!, forKey: "imageKey")
 ```
 
 ```
-let image = DataCache.defaultCache.readImageForKey("imageKey")
+let image = DataCache.instance.readImage(forKey: "imageKey")
 ```
 
 ##### Cache and Read a NSData
 
 ```
 let data = ... // your data  
-DataCache.defaultCache.writeData(data, forKey: "myKey")
+DataCache.instance.write(data: data, forKey: "myKey")
 ```
 
 ```
-let data = DataCache.defaultCache.readDataForKey("myKey")
+let data = DataCache.instance.readData(forKey: "myKey")
 ```
 
 ##### Custom a class for cache ability
-Inherite `NSObject` and implement `NSCoding` protocol with constructor `init(coder:)` and `encodeWithCoder(_:)` method
+Inherite `NSObject` and implement `NSCoding` protocol with constructor `init(coder:)` and `encode(with:)` method
 
 ```
-public class MyObject: NSObject, NSCoding {
-    public var name = ""
-    public var yearOld = 0
+open class MyObject: NSObject, NSCoding {
+    open var name = ""
+    open var yearOld = 0
     
     override init() {
+        
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        self.name = aDecoder.decodeObjectForKey("name") as! String
-        self.yearOld = aDecoder.decodeIntegerForKey("yearOld")
+        self.name = aDecoder.decodeObject(forKey: "name") as! String
+        self.yearOld = aDecoder.decodeInteger(forKey: "yearOld")
     }
     
-    public func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeObject(self.name, forKey: "name")
-        aCoder.encodeInteger(self.yearOld, forKey: "yearOld")
+    open func encode(with aCoder: NSCoder) {
+        aCoder.encode(self.name, forKey: "name")
+        aCoder.encode(self.yearOld, forKey: "yearOld")
     }
 }
 ```
 ##### Create custom Cache instance
 
-Beside using `DataCache.defaultCache`, you can create your cache instances, then you can set different expire time, disk size, disk path. The name parameter specify path name for disk cache.
+Beside using default cache `DataCache.instance`, you can create your cache instances, then you can set different expire time, disk size, disk path. The name parameter specify path name for disk cache.
 
 ```
 let cache = DataCache(name: "MyCustomCache")
