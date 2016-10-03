@@ -68,6 +68,15 @@ DataCache.instance.write(data: data, forKey: "myKey")
 let data = DataCache.instance.readData(forKey: "myKey")
 ```
 
+##### Clean cache
+
+You can clean by key, or clean all, use one of below methods:
+```
+DataCache.instance.clean(byKey: "myKey")
+DataCache.instance.cleanAll()
+```
+
+
 ##### Custom a class for cache ability
 Inherite `NSObject` and implement `NSCoding` protocol with constructor `init(coder:)` and `encode(with:)` method
 
