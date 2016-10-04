@@ -184,7 +184,7 @@ fileprivate extension DataCache {
 
 // MARK: Clean
 
-fileprivate extension DataCache {
+extension DataCache {
     
     /// Clean all mem cache and disk cache. This is an async operation.
     public func cleanAll() {
@@ -203,11 +203,11 @@ fileprivate extension DataCache {
         }
     }
     
-    func cleanMemCache() {
+    public func cleanMemCache() {
         memCache.removeAllObjects()
     }
     
-    func cleanDiskCache() {
+    public func cleanDiskCache() {
         ioQueue.async {
             do {
                 try self.fileManager.removeItem(atPath: self.cachePath)
@@ -284,7 +284,7 @@ fileprivate extension DataCache {
 extension DataCache {
     
     // This method is from Kingfisher
-    func travelCachedFiles() -> (URLsToDelete: [URL], diskCacheSize: UInt, cachedFiles: [URL: [URLResourceKey: Any]]) {
+    fileprivate func travelCachedFiles() -> (URLsToDelete: [URL], diskCacheSize: UInt, cachedFiles: [URL: [URLResourceKey: Any]]) {
         
         let diskCacheURL = URL(fileURLWithPath: cachePath)
         let resourceKeys = [URLResourceKey.isDirectoryKey, URLResourceKey.contentModificationDateKey, URLResourceKey.totalFileAllocatedSizeKey]
