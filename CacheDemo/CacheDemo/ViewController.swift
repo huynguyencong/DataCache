@@ -33,6 +33,15 @@ class ViewController: UIViewController {
         DataCache.instance.write(object: string as NSCoding, forKey: key)
     }
     
+    @IBAction func cleanButtonTapped(_ sender: AnyObject) {
+        let key = keyTextField.text!
+        DataCache.instance.clean(byKey: key)
+    }
+    
+    @IBAction func cleanAllButtonTapped(_ sender: AnyObject) {
+        DataCache.instance.cleanAll()
+    }
+    
     func writeImageToCache() {
         let image = UIImage(named: "dog.jpg")
         DataCache.instance.write(image: image!, forKey: ViewController.imageKey)
