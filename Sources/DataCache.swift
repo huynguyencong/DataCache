@@ -56,7 +56,7 @@ open class DataCache {
     }
 }
 
-    // MARK: Store
+// MARK: Store data
 
 extension DataCache {
     
@@ -169,7 +169,7 @@ extension DataCache {
 
 // MARK: Utils
 
-fileprivate extension DataCache {
+extension DataCache {
     
     /// Check if has data on disk
     public func hasDataOnDiskForKey(key: String) -> Bool {
