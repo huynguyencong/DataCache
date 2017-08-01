@@ -300,7 +300,7 @@ extension DataCache {
                 
                 do {
                     let bookmarkData = try fileURL.bookmarkData()
-                    let resourceValues = try URL.resourceValues(forKeys: Set(resourceKeys), fromBookmarkData: bookmarkData)?.allValues
+                    let resourceValues = URL.resourceValues(forKeys: Set(resourceKeys), fromBookmarkData: bookmarkData)?.allValues
                     // If it is a Directory. Continue to next file URL.
                     if let isDirectory = resourceValues?[URLResourceKey.isDirectoryKey] as? NSNumber {
                         if isDirectory.boolValue {
