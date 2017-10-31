@@ -217,7 +217,7 @@ extension DataCache {
     
     /// Clean expired disk cache. This is an async operation.
     @objc public func cleanExpiredDiskCache() {
-        cleanExpiredDiskCacheWithCompletionHander(completionHandler: nil)
+        cleanExpiredDiskCache(completion: nil)
     }
     
     // This method is from Kingfisher
@@ -226,17 +226,17 @@ extension DataCache {
      
      - parameter completionHandler: Called after the operation completes.
      */
-    public func cleanExpiredDiskCacheWithCompletionHander(completionHandler: (()->())?) {
+    open func cleanExpiredDiskCache(completion handler: (()->())? = nil) {
         
         // Do things in cocurrent io queue
-        ioQueue.async(execute: { () -> Void in
+        ioQueue.async {
             
-            var (URLsToDelete, diskCacheSize, cachedFiles) = self.travelCachedFiles()
+            var (URLsToDelete, diskCacheSize, cachedFiles) = self.travelCachedFiles(onlyForCacheSize: false)
             
             for fileURL in URLsToDelete {
                 do {
                     try self.fileManager.removeItem(at: fileURL)
-                } catch {}
+                } catch _ { }
             }
             
             if self.maxDiskCacheSize > 0 && diskCacheSize > self.maxDiskCacheSize {
@@ -246,10 +246,12 @@ extension DataCache {
                 let sortedFiles = cachedFiles.keysSortedByValue {
                     resourceValue1, resourceValue2 -> Bool in
                     
-                    if let date1 = resourceValue1[URLResourceKey.contentModificationDateKey] as? Date,
-                        let date2 = resourceValue2[URLResourceKey.contentModificationDateKey] as? Date {
+                    if let date1 = resourceValue1.contentAccessDate,
+                       let date2 = resourceValue2.contentAccessDate
+                    {
                         return date1.compare(date2) == .orderedAscending
                     }
+                    
                     // Not valid date information. This should not happen. Just in case.
                     return true
                 }
@@ -258,12 +260,12 @@ extension DataCache {
                     
                     do {
                         try self.fileManager.removeItem(at: fileURL)
-                    } catch {}
+                    } catch { }
                     
                     URLsToDelete.append(fileURL)
                     
-                    if let fileSize = cachedFiles[fileURL]?[URLResourceKey.totalFileAllocatedSizeKey] as? NSNumber {
-                        diskCacheSize -= fileSize.uintValue
+                    if let fileSize = cachedFiles[fileURL]?.totalFileAllocatedSize {
+                        diskCacheSize -= UInt(fileSize)
                     }
                     
                     if diskCacheSize < targetSize {
@@ -273,9 +275,9 @@ extension DataCache {
             }
             
             DispatchQueue.main.async(execute: { () -> Void in
-                completionHandler?()
+                handler?()
             })
-        })
+        }
     }
 }
 
@@ -284,48 +286,45 @@ extension DataCache {
 extension DataCache {
     
     // This method is from Kingfisher
-    fileprivate func travelCachedFiles() -> (URLsToDelete: [URL], diskCacheSize: UInt, cachedFiles: [URL: [URLResourceKey: Any]]) {
+    fileprivate func travelCachedFiles(onlyForCacheSize: Bool) -> (urlsToDelete: [URL], diskCacheSize: UInt, cachedFiles: [URL: URLResourceValues]) {
         
         let diskCacheURL = URL(fileURLWithPath: cachePath)
-        let resourceKeys = [URLResourceKey.isDirectoryKey, URLResourceKey.contentModificationDateKey, URLResourceKey.totalFileAllocatedSizeKey]
-        let expiredDate = Date(timeIntervalSinceNow: -self.maxCachePeriodInSecond)
+        let resourceKeys: Set<URLResourceKey> = [.isDirectoryKey, .contentAccessDateKey, .totalFileAllocatedSizeKey]
+        let expiredDate: Date? = (maxCachePeriodInSecond < 0) ? nil : Date(timeIntervalSinceNow: -maxCachePeriodInSecond)
         
-        var cachedFiles = [URL: [URLResourceKey: Any]]()
-        var URLsToDelete = [URL]()
+        var cachedFiles = [URL: URLResourceValues]()
+        var urlsToDelete = [URL]()
         var diskCacheSize: UInt = 0
         
-        if let fileEnumerator = self.fileManager.enumerator(at: diskCacheURL, includingPropertiesForKeys: resourceKeys, options: FileManager.DirectoryEnumerationOptions.skipsHiddenFiles, errorHandler: nil),
-            let urls = fileEnumerator.allObjects as? [URL] {
-            for fileURL in urls {
-                
-                do {
-                    let bookmarkData = try fileURL.bookmarkData()
-                    let resourceValues = URL.resourceValues(forKeys: Set(resourceKeys), fromBookmarkData: bookmarkData)?.allValues
-                    // If it is a Directory. Continue to next file URL.
-                    if let isDirectory = resourceValues?[URLResourceKey.isDirectoryKey] as? NSNumber {
-                        if isDirectory.boolValue {
-                            continue
-                        }
-                    }
-                    
-                    // If this file is expired, add it to URLsToDelete
-                    if let modificationDate = resourceValues?[URLResourceKey.contentModificationDateKey] as? NSDate {
-                        if modificationDate.laterDate(expiredDate) == expiredDate {
-                            URLsToDelete.append(fileURL)
-                            continue
-                        }
-                    }
-                    
-                    if let fileSize = resourceValues?[URLResourceKey.totalFileSizeKey] as? NSNumber {
-                        diskCacheSize += fileSize.uintValue
-                        cachedFiles[fileURL] = resourceValues
-                    }
-                } catch _ {
+        for fileUrl in (try? fileManager.contentsOfDirectory(at: diskCacheURL, includingPropertiesForKeys: Array(resourceKeys), options: .skipsHiddenFiles)) ?? [] {
+            
+            do {
+                let resourceValues = try fileUrl.resourceValues(forKeys: resourceKeys)
+                // If it is a Directory. Continue to next file URL.
+                if resourceValues.isDirectory == true {
+                    continue
                 }
-            }
+                
+                // If this file is expired, add it to URLsToDelete
+                if !onlyForCacheSize,
+                    let expiredDate = expiredDate,
+                    let lastAccessData = resourceValues.contentAccessDate,
+                    (lastAccessData as NSDate).laterDate(expiredDate) == expiredDate
+                {
+                    urlsToDelete.append(fileUrl)
+                    continue
+                }
+                
+                if let fileSize = resourceValues.totalFileAllocatedSize {
+                    diskCacheSize += UInt(fileSize)
+                    if !onlyForCacheSize {
+                        cachedFiles[fileUrl] = resourceValues
+                    }
+                }
+            } catch _ { }
         }
         
-        return (URLsToDelete, diskCacheSize, cachedFiles)
+        return (urlsToDelete, diskCacheSize, cachedFiles)
     }
     
     func cachePath(forKey key: String) -> String {
