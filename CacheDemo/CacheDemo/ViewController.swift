@@ -30,7 +30,7 @@ class ViewController: UIViewController {
     @IBAction func writeButtonTouched(_ sender: AnyObject) {
         let string = valueTextField.text!
         let key = keyTextField.text!
-        DataCache.instance.write(object: string as NSCoding, forKey: key)
+        DataCache.instance.write(string: string, forKey: key)
     }
     
     @IBAction func cleanButtonTapped(_ sender: AnyObject) {

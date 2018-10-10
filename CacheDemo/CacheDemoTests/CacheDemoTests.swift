@@ -77,7 +77,7 @@ class CacheDemoTests: XCTestCase {
         
         // wait for write to disk successful
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double((Int64)(1 * NSEC_PER_SEC)) / Double(NSEC_PER_SEC)) {
-            let hasDataOnDisk = DataCache.instance.hasDataOnDiskForKey(key: key)
+            let hasDataOnDisk = DataCache.instance.hasDataOnDisk(forKey: key)
             XCTAssert(hasDataOnDisk == true)
             expectation.fulfill()
         }
@@ -94,7 +94,7 @@ class CacheDemoTests: XCTestCase {
         let key = "testHasDataOnMemForKeyKey"
         
         DataCache.instance.write(object: str as NSCoding, forKey: key)
-        let hasDataOnMem = DataCache.instance.hasDataOnMemForKey(key: key)
+        let hasDataOnMem = DataCache.instance.hasDataOnMem(forKey: key)
         
         XCTAssert(hasDataOnMem == true)
     }
