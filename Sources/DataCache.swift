@@ -17,7 +17,7 @@ open class DataCache {
     static let ioQueuePrefix = "com.nch.queue."
     static let defaultMaxCachePeriodInSecond: TimeInterval = 60 * 60 * 24 * 7         // a week
     
-    open static var instance = DataCache(name: "default")
+    public static var instance = DataCache(name: "default")
     
     var cachePath: String
     
