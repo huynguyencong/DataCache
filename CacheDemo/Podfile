@@ -2,6 +2,15 @@ platform :ios, "8.0"
 
 use_frameworks!
 
-target 'CacheDemo' do
+def commonpods
 	pod 'DataCache', :path => '../'
+end
+
+
+target 'CacheDemo' do
+    commonpods
+end
+
+target 'CacheDemoTests' do
+    commonpods
 end

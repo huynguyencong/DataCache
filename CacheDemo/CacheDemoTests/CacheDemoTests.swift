@@ -24,8 +24,8 @@ class CacheDemoTests: XCTestCase {
         let str = "testReadWriteCache"
         let key = "testReadWriteCacheKey"
         
-        DataCache.instance.writeObject(str, forKey: key)
-        let cachedString = DataCache.instance.readStringForKey(key)
+        DataCache.instance.write(object:str as NSCoding, forKey: key)
+        let cachedString = DataCache.instance.readString(forKey: key)
         
         XCTAssert(cachedString == str)
     }
@@ -36,12 +36,12 @@ class CacheDemoTests: XCTestCase {
         
         let expectation = self.expectation(description: "Write to disk is an asynchonous operation")
         
-        DataCache.instance.writeObject(str, forKey: key)
+        DataCache.instance.write(object: str as NSCoding, forKey: key)
         DataCache.instance.cleanMemCache()
         
         // wait for write to disk successful
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double((Int64)(1 * NSEC_PER_SEC)) / Double(NSEC_PER_SEC)) {
-            let cachedString = DataCache.instance.readStringForKey(key)
+            let cachedString = DataCache.instance.readString(forKey: key)
             XCTAssert(cachedString == str)
             expectation.fulfill()
         }
@@ -57,8 +57,8 @@ class CacheDemoTests: XCTestCase {
         let image = UIImage(named: "dog.jpg")
         let key = "testReadWriteImageKey"
         
-        DataCache.instance.writeImage(image!, forKey: key)
-        let cachedImage = DataCache.instance.readImageForKey(key)
+        DataCache.instance.write(image: image!, forKey: key)
+        let cachedImage = DataCache.instance.readImageForKey(key: key)
         
         if let image = image, let cachedImage = cachedImage {
             XCTAssert(image.size == cachedImage.size)
@@ -73,11 +73,11 @@ class CacheDemoTests: XCTestCase {
         let key = "testHasDataOnDiskForKeyKey"
         let expectation = self.expectation(description: "Write to disk is an asynchonous operation")
         
-        DataCache.instance.writeObject(str, forKey: key)
+        DataCache.instance.write(object: str as NSCoding, forKey: key)
         
         // wait for write to disk successful
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double((Int64)(1 * NSEC_PER_SEC)) / Double(NSEC_PER_SEC)) {
-            let hasDataOnDisk = DataCache.instance.hasDataOnDiskForKey(key)
+            let hasDataOnDisk = DataCache.instance.hasDataOnDiskForKey(key: key)
             XCTAssert(hasDataOnDisk == true)
             expectation.fulfill()
         }
@@ -93,8 +93,8 @@ class CacheDemoTests: XCTestCase {
         let str = "testHasDataOnMemForKey"
         let key = "testHasDataOnMemForKeyKey"
         
-        DataCache.instance.writeObject(str, forKey: key)
-        let hasDataOnMem = DataCache.instance.hasDataOnMemForKey(key)
+        DataCache.instance.write(object: str as NSCoding, forKey: key)
+        let hasDataOnMem = DataCache.instance.hasDataOnMemForKey(key: key)
         
         XCTAssert(hasDataOnMem == true)
     }
@@ -104,13 +104,13 @@ class CacheDemoTests: XCTestCase {
         let key = "testCleanCacheKey"
         let expectation = self.expectation(description: "Clean is an asynchonous operation")
         
-        DataCache.instance.writeObject(str, forKey: key)
+        DataCache.instance.write(object: str as NSCoding, forKey: key)
         
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double((Int64)(1 * NSEC_PER_SEC)) / Double(NSEC_PER_SEC)) {
             DataCache.instance.cleanAll()
             
             DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double((Int64)(1 * NSEC_PER_SEC)) / Double(NSEC_PER_SEC)) {
-                let cachedString = DataCache.instance.readStringForKey(key)
+                let cachedString = DataCache.instance.readString(forKey: key)
                 XCTAssert(cachedString == nil)
                 expectation.fulfill()
             }
