@@ -11,7 +11,7 @@ There are many reasons why you should use this cache  libary:
 
 ### Compatible
 - iOS 8 or later (if you want to use it on iOS 7, you can add files manually)
-- Swift 3.x (version 1.2 and later), Swift 2.x (version 1.1 and prior)
+- Swift 4.2 (for earlier Swift version, please use earlier DataCache version)
 
 ### Usage
 #### Cocoapod
@@ -32,13 +32,24 @@ Add all file in folder `Sources` to your project.
 #### Simple to use
 Use default cache a create new cache if you want. With each cache instance, you can setup cache size and expired time.
 ##### Cache and Read an object
+
 Cache object such as `String`, `Array`, `Dictionary`, your custom class (inherite `NSObject` and implement `NSCoding`), ...  
+
 NOTE: With `UIImage`, read next section.
+
+- Write:
 
 ```
 let myString = "Hello Cache"
-DataCache.instance.write(object: myString, forKey: "myKey")
+DataCache.instance.write(object: myString as NSCoding, forKey: "myKey")
 ```
+
+or use a utility method for  `String`, `Array` or `Dictionary` to avoid casting to `NSCoding`:
+```
+DataCache.instance.write(string: myString, forKey: "myKey")
+```
+
+- Read:
 
 ```
 DataCache.instance.readObject(forKey: "myKey") as? String
@@ -75,7 +86,7 @@ You can clean by key, or clean all, use one of below methods:
 DataCache.instance.clean(byKey: "myKey")
 DataCache.instance.cleanAll()
 ```
-
+It also clear cache after expiration day. The Default expiration day is 1 week. If you want to customize expiration, please create your customized cache by below instruction. 
 
 ##### Custom a class for cache ability
 Inherite `NSObject` and implement `NSCoding` protocol with constructor `init(coder:)` and `encode(with:)` method
@@ -100,9 +111,10 @@ open class MyObject: NSObject, NSCoding {
     }
 }
 ```
+
 ##### Create custom Cache instance
 
-Beside using default cache `DataCache.instance`, you can create your cache instances, then you can set different expire time, disk size, disk path. The name parameter specify path name for disk cache.
+Beside using default cache `DataCache.instance`, you can create your cache instances, then you can set different expiration time, disk size, disk path. The name parameter specify path name for disk cache.
 
 ```
 let cache = DataCache(name: "MyCustomCache")
