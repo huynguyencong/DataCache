@@ -46,8 +46,8 @@ open class DataCache {
         self.fileManager = FileManager()
         
         #if !os(OSX) && !os(watchOS)
-            NotificationCenter.default.addObserver(self, selector: #selector(DataCache.cleanExpiredDiskCache), name: NSNotification.Name.UIApplicationWillTerminate, object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(DataCache.cleanExpiredDiskCache), name: NSNotification.Name.UIApplicationDidEnterBackground, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(DataCache.cleanExpiredDiskCache), name: UIApplication.willTerminateNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(DataCache.cleanExpiredDiskCache), name: UIApplication.didEnterBackgroundNotification, object: nil)
         #endif
     }
     
@@ -145,10 +145,10 @@ extension DataCache {
         var data: Data? = nil
         
         if let format = format, format == .png {
-            data = UIImagePNGRepresentation(image)
+            data = image.pngData()
         }
         else {
-            data = UIImageJPEGRepresentation(image, 0.9)
+            data = image.jpegData(compressionQuality: 0.9)
         }
         
         if let data = data {
