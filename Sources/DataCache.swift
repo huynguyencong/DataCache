@@ -112,6 +112,21 @@ extension DataCache {
         write(data: data, forKey: key)
     }
     
+    /// Write a string for key
+    public func write(string: String, forKey key: String) {
+        write(object: string as NSCoding, forKey: key)
+    }
+    
+    /// Write a dictionary for key
+    public func write(dictionary: Dictionary<AnyHashable, Any>, forKey key: String) {
+        write(object: dictionary as NSCoding, forKey: key)
+    }
+    
+    /// Write an array for key
+    public func write(array: Array<Any>, forKey key: String) {
+        write(object: array as NSCoding, forKey: key)
+    }
+    
     /// Read an object for key. This object must inherit from `NSObject` and implement NSCoding protocol. `String`, `Array`, `Dictionary` conform to this method
     public func readObject(forKey key: String) -> NSObject? {
         let data = readData(forKey: key)
@@ -134,8 +149,8 @@ extension DataCache {
     }
     
     /// Read a dictionary for key
-    public func readDictionary(forKey key: String) -> Dictionary<String, Any>? {
-        return readObject(forKey: key) as? Dictionary<String, Any>
+    public func readDictionary(forKey key: String) -> Dictionary<AnyHashable, Any>? {
+        return readObject(forKey: key) as? Dictionary<AnyHashable, Any>
     }
     
     // MARK: Read & write image
@@ -172,12 +187,12 @@ extension DataCache {
 extension DataCache {
     
     /// Check if has data on disk
-    public func hasDataOnDiskForKey(key: String) -> Bool {
+    public func hasDataOnDisk(forKey key: String) -> Bool {
         return self.fileManager.fileExists(atPath: self.cachePath(forKey: key))
     }
     
     /// Check if has data on mem
-    public func hasDataOnMemForKey(key: String) -> Bool {
+    public func hasDataOnMem(forKey key: String) -> Bool {
         return (memCache.object(forKey: key as AnyObject) != nil)
     }
 }
