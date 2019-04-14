@@ -25,8 +25,8 @@ extension String {
     var md5: String {
         if let data = self.data(using: .utf8, allowLossyConversion: true) {
             
-            let message = data.withUnsafeBytes { bytes -> [UInt8] in
-                return Array(UnsafeBufferPointer(start: bytes, count: data.count))
+            let message = data.withUnsafeBytes { (bufferPointer) -> [UInt8] in
+                return Array(bufferPointer)
             }
             
             let MD5Calculator = MD5(message)
