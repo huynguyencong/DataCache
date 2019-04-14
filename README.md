@@ -9,9 +9,9 @@ There are many reasons why you should use this cache  libary:
 - Load from cache, just update from remote source when cache expired, can save Internet data (especial 3G data) for users, it can help improve battery life.
 - It stores data on disk and memory. When you read cache, it try to get data from memory first. That make reading speed is fast. It auto clean mem cache when RAM is full, so it doesn't make your app out of memory.
 
-### Compatible
-- iOS 8 or later (if you want to use it on iOS 7, you can add files manually)
-- Swift 4.2 (for earlier Swift version, please use earlier DataCache version)
+### Compatibility
+- iOS 9 or later (if you want to use it on iOS 7, you can add files manually)
+- Swift 5 (for earlier Swift version, please use earlier DataCache version)
 
 ### Usage
 #### Cocoapod
