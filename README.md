@@ -33,7 +33,7 @@ Add all file in folder `Sources` to your project.
 Use default cache a create new cache if you want. With each cache instance, you can setup cache size and expired time.
 ##### Cache and Read an object
 
-Cache object such as `String`, `Array`, `Dictionary`, your custom class (inherite `NSObject` and implement `NSCoding`), ...  
+Cache object such as `String`, `Array`, `Dictionary`, your custom class (inherit `NSObject` and implement `NSCoding`), ...  
 
 NOTE: With `UIImage`, read next section.
 
@@ -89,7 +89,7 @@ DataCache.instance.cleanAll()
 It also clear cache after expiration day. The Default expiration day is 1 week. If you want to customize expiration, please create your customized cache by below instruction. 
 
 ##### Custom a class for cache ability
-Inherite `NSObject` and implement `NSCoding` protocol with constructor `init(coder:)` and `encode(with:)` method
+Inherit `NSObject` and implement `NSCoding` protocol with constructor `init(coder:)` and `encode(with:)` method
 
 ```
 open class MyObject: NSObject, NSCoding {
