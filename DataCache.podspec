@@ -6,6 +6,7 @@ Pod::Spec.new do |s|
   s.license      = { :type => 'MIT', :file => 'LICENSE' }
   s.source       = { :git => 'https://github.com/huynguyencong/DataCache.git', :tag => "#{s.version}" }
   s.author       = { 'Huy Nguyen Cong' => 'https://github.com/huynguyencong' }
+  s.osx.deployment_target = '10.12'
   s.ios.deployment_target = '9.0'
   s.source_files = 'Sources/*.{swift}'
   s.requires_arc = true
