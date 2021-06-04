@@ -17,9 +17,9 @@ open class DataCache {
     static let ioQueuePrefix = "com.nch.queue."
     static let defaultMaxCachePeriodInSecond: TimeInterval = 60 * 60 * 24 * 7         // a week
     
-    public static var instance = DataCache(name: "default")
+    public static let instance = DataCache(name: "default")
     
-    var cachePath: String
+    let cachePath: String
     
     let memCache = NSCache<AnyObject, AnyObject>()
     let ioQueue: DispatchQueue
@@ -38,16 +38,17 @@ open class DataCache {
     public init(name: String, path: String? = nil) {
         self.name = name
         
-        cachePath = path ?? NSSearchPathForDirectoriesInDomains(.cachesDirectory, FileManager.SearchPathDomainMask.userDomainMask, true).first!
+        var cachePath = path ?? NSSearchPathForDirectoriesInDomains(.cachesDirectory, FileManager.SearchPathDomainMask.userDomainMask, true).first!
         cachePath = (cachePath as NSString).appendingPathComponent(DataCache.cacheDirectoryPrefix + name)
+        self.cachePath = cachePath
         
         ioQueue = DispatchQueue(label: DataCache.ioQueuePrefix + name)
         
         self.fileManager = FileManager()
         
         #if !os(OSX) && !os(watchOS)
-            NotificationCenter.default.addObserver(self, selector: #selector(DataCache.cleanExpiredDiskCache), name: UIApplication.willTerminateNotification, object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(DataCache.cleanExpiredDiskCache), name: UIApplication.didEnterBackgroundNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(cleanExpiredDiskCache), name: UIApplication.willTerminateNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(cleanExpiredDiskCache), name: UIApplication.didEnterBackgroundNotification, object: nil)
         #endif
     }
     
@@ -56,7 +57,7 @@ open class DataCache {
     }
 }
 
-// MARK: Store data
+// MARK: - Store data
 
 extension DataCache {
     
@@ -100,7 +101,7 @@ extension DataCache {
     }
     
     
-    // MARK: Read & write utils
+    // MARK: - Read & write primitive types
     
     
     /// Write an object for key. This object must inherit from `NSObject` and implement `NSCoding` protocol. `String`, `Array`, `Dictionary` conform to this method.
@@ -152,7 +153,7 @@ extension DataCache {
         return readObject(forKey: key) as? Dictionary<AnyHashable, Any>
     }
     
-    // MARK: Read & write image
+    // MARK: - Read & write image
     
     /// Write image for key. Please use this method to write an image instead of `writeObject(_:forKey:)`
     public func write(image: UIImage, forKey key: String, format: ImageFormat? = nil) {
@@ -181,7 +182,7 @@ extension DataCache {
     }
 }
 
-// MARK: Utils
+// MARK: - Utils
 
 extension DataCache {
     
@@ -196,7 +197,7 @@ extension DataCache {
     }
 }
 
-// MARK: Clean
+// MARK: - Clean
 
 extension DataCache {
     
@@ -303,7 +304,7 @@ extension DataCache {
     }
 }
 
-// MARK: Helpers
+// MARK: - Helpers
 
 extension DataCache {
     
