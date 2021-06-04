@@ -67,7 +67,7 @@ extension DataCache {
         writeDataToDisk(data: data, key: key)
     }
     
-    func writeDataToDisk(data: Data, key: String) {
+    private func writeDataToDisk(data: Data, key: String) {
         ioQueue.async {
             if self.fileManager.fileExists(atPath: self.cachePath) == false {
                 do {
@@ -100,6 +100,16 @@ extension DataCache {
         return self.fileManager.contents(atPath: cachePath(forKey: key))
     }
     
+    // MARK: - Read & write Codable types
+    public func write<T: Encodable>(codable: T, forKey key: String) throws {
+        let data = try JSONEncoder().encode(codable)
+        write(data: data, forKey: key)
+    }
+    
+    public func readCodable<T: Decodable>(forKey key: String) throws -> T? {
+        guard let data = readData(forKey: key) else { return nil }
+        return try JSONDecoder().decode(T.self, from: data)
+    }
     
     // MARK: - Read & write primitive types
     
