@@ -185,6 +185,10 @@ extension DataCache {
 // MARK: - Utils
 
 extension DataCache {
+    /// Check if has data for key
+    public func hasData(forKey key: String) -> Bool {
+        return hasDataOnDisk(forKey: key) || hasDataOnMem(forKey: key)
+    }
     
     /// Check if has data on disk
     public func hasDataOnDisk(forKey key: String) -> Bool {
