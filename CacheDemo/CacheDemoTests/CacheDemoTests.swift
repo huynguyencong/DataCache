@@ -8,6 +8,7 @@
 
 import XCTest
 @testable import DataCache
+@testable import CacheDemo
 
 class CacheDemoTests: XCTestCase {
     
@@ -28,6 +29,19 @@ class CacheDemoTests: XCTestCase {
         let cachedString = DataCache.instance.readString(forKey: key)
         
         XCTAssert(cachedString == str)
+    }
+    
+    func testReadWriteCodable() {
+        let user = User(name: "Minh", yearOld: 20)
+        let key = "testReadWriteCodableKey"
+        
+        do {
+            try DataCache.instance.write(codable: user, forKey: key)
+            let readUser: User? = try DataCache.instance.readCodable(forKey: key)
+            XCTAssert(readUser == user)
+        } catch {
+            assertionFailure(error.localizedDescription)
+        }
     }
     
     func testWriteCacheToDisk() {
