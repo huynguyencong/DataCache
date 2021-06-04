@@ -71,9 +71,8 @@ extension DataCache {
             if self.fileManager.fileExists(atPath: self.cachePath) == false {
                 do {
                     try self.fileManager.createDirectory(atPath: self.cachePath, withIntermediateDirectories: true, attributes: nil)
-                }
-                catch {
-                    print("Error while creating cache folder")
+                } catch {
+                    print("DataCache: Error while creating cache folder: \(error.localizedDescription)")
                 }
             }
             
@@ -214,7 +213,9 @@ extension DataCache {
         ioQueue.async {
             do {
                 try self.fileManager.removeItem(atPath: self.cachePath(forKey: key))
-            } catch {}
+            } catch {
+                print("DataCache: Error while remove file: \(error.localizedDescription)")
+            }
         }
     }
     
@@ -226,7 +227,9 @@ extension DataCache {
         ioQueue.async {
             do {
                 try self.fileManager.removeItem(atPath: self.cachePath)
-            } catch {}
+            } catch {
+                print("DataCache: Error when clean disk: \(error.localizedDescription)")
+            }
         }
     }
     
@@ -251,7 +254,9 @@ extension DataCache {
             for fileURL in URLsToDelete {
                 do {
                     try self.fileManager.removeItem(at: fileURL)
-                } catch _ { }
+                } catch {
+                    print("DataCache: Error while removing files \(error.localizedDescription)")
+                }
             }
             
             if self.maxDiskCacheSize > 0 && diskCacheSize > self.maxDiskCacheSize {
@@ -275,7 +280,9 @@ extension DataCache {
                     
                     do {
                         try self.fileManager.removeItem(at: fileURL)
-                    } catch { }
+                    } catch {
+                        print("DataCache: Error while removing files \(error.localizedDescription)")
+                    }
                     
                     URLsToDelete.append(fileURL)
                     
@@ -336,7 +343,9 @@ extension DataCache {
                         cachedFiles[fileUrl] = resourceValues
                     }
                 }
-            } catch _ { }
+            } catch {
+                print("DataCache: Error while iterating files \(error.localizedDescription)")
+            }
         }
         
         return (urlsToDelete, diskCacheSize, cachedFiles)
