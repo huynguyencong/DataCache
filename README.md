@@ -1,8 +1,8 @@
 # Cache
-This is a simple disk and memory cache. It can cache basic swift types and `Codable` types, such as `String`, `Array`, `Dictionary`, `UIImage`, `Data`, numbers (`Int`, `Float`, `Double`, etc.). It can also cache classes that conform to `NSCoding`.
+This is a simple disk and memory cache for iOS. It can cache Swift primitive types and `Codable` types, such as `String`, `Array`, `Dictionary`, `UIImage`, `Data`, numbers (`Int`, `Float`, `Double`, etc.). It can also cache classes that conform to `NSCoding`.
 
 ### Why use this cache library
-There are many reasons why you should use this cache libary:  
+There are some reasons why you should use this cache libary for caching:
 
 - Easiest, simplest way to cache, store data in memory and disk.
 - Fast responding time. Instead of waiting for load data from Internet, now you can load from cache before update from remote resources.
@@ -51,13 +51,13 @@ do {
 ```
 
 or use a utility methods for  `String`, `Array` or `Dictionary`:
-```
+```swift
 DataCache.instance.write(string: myString, forKey: "myKey")
 ```
 
 - Read:
 
-```
+```swift
 do {
     let object: MyCodableObject? = try DataCache.instance.readCodable(forKey: "myKey")
 } catch {
@@ -70,7 +70,7 @@ You can use utility methods for `String`, `Array` or `Dictionary`:
 DataCache.instance.write(string: myString, forKey: "myKey")
 ```
 
-##### Read and write an image
+##### Read and write `UIImage`
 
 ```swift
 let image = UIImage(named: "myImageName")
@@ -81,7 +81,7 @@ DataCache.instance.write(image: image!, forKey: "imageKey")
 let image = DataCache.instance.readImage(forKey: "imageKey")
 ```
 
-##### Read and write Data
+##### Read and write `Data`
 
 ```swift
 let data = ... // your data  
