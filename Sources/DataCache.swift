@@ -181,14 +181,19 @@ extension DataCache {
         }
     }
     
-    /// Read image for key. Please use this method to write an image instead of `readObjectForKey(_:)`
-    public func readImageForKey(key: String) -> UIImage? {
+    /// Read image for key. Please use this method to write an image instead of `readObject(forKey:)`
+    public func readImage(forKey key: String) -> UIImage? {
         let data = readData(forKey: key)
         if let data = data {
             return UIImage(data: data, scale: 1.0)
         }
         
         return nil
+    }
+    
+    @available(*, deprecated, message: "Please use `readImage(forKey:)` instead. This will be removed in the future.")
+    public func readImageForKey(key: String) -> UIImage? {
+        return readImage(forKey: key)
     }
 }
 
