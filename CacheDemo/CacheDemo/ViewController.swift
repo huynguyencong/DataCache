@@ -48,7 +48,7 @@ class ViewController: UIViewController {
     }
     
     func readImageFromCacheAndShow() {
-        let image = DataCache.instance.readImageForKey(key: ViewController.imageKey)
+        let image = DataCache.instance.readImage(forKey: ViewController.imageKey)
         imageView.image = image
     }
 }

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		434929082669DB480039D287 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 434929072669DB480039D287 /* User.swift */; };
 		47E268892DFE61ABD4B44A78 /* Pods_CacheDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 41D6EE2A3522D04F98F4960C /* Pods_CacheDemo.framework */; };
 		61C479EF1D2A5E44001D1BE7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C479EE1D2A5E44001D1BE7 /* AppDelegate.swift */; };
 		61C479F11D2A5E44001D1BE7 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C479F01D2A5E44001D1BE7 /* ViewController.swift */; };
@@ -33,6 +34,7 @@
 /* Begin PBXFileReference section */
 		1164CDFF8E975F60490D04C5 /* Pods.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		41D6EE2A3522D04F98F4960C /* Pods_CacheDemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CacheDemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		434929072669DB480039D287 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		5C4F486D7057768431A89C14 /* Pods-CacheDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CacheDemo.release.xcconfig"; path = "Pods/Target Support Files/Pods-CacheDemo/Pods-CacheDemo.release.xcconfig"; sourceTree = "<group>"; };
 		61C479EB1D2A5E44001D1BE7 /* CacheDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CacheDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		61C479EE1D2A5E44001D1BE7 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -82,6 +84,15 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		434929062669DB2E0039D287 /* Objects */ = {
+			isa = PBXGroup;
+			children = (
+				61EA9DCA1D33873E0081FA76 /* MyObject.swift */,
+				434929072669DB480039D287 /* User.swift */,
+			);
+			path = Objects;
+			sourceTree = "<group>";
+		};
 		61C479E21D2A5E44001D1BE7 = {
 			isa = PBXGroup;
 			children = (
@@ -105,13 +116,13 @@
 		61C479ED1D2A5E44001D1BE7 /* CacheDemo */ = {
 			isa = PBXGroup;
 			children = (
+				434929062669DB2E0039D287 /* Objects */,
 				61C479EE1D2A5E44001D1BE7 /* AppDelegate.swift */,
 				61C479F01D2A5E44001D1BE7 /* ViewController.swift */,
 				61C479F21D2A5E44001D1BE7 /* Main.storyboard */,
 				61C479F51D2A5E44001D1BE7 /* Assets.xcassets */,
 				61C479F71D2A5E44001D1BE7 /* LaunchScreen.storyboard */,
 				61C479FA1D2A5E44001D1BE7 /* Info.plist */,
-				61EA9DCA1D33873E0081FA76 /* MyObject.swift */,
 				61EA9DCC1D338E7C0081FA76 /* dog.jpg */,
 			);
 			path = CacheDemo;
@@ -323,6 +334,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				434929082669DB480039D287 /* User.swift in Sources */,
 				61C479F11D2A5E44001D1BE7 /* ViewController.swift in Sources */,
 				61EA9DCB1D33873E0081FA76 /* MyObject.swift in Sources */,
 				61C479EF1D2A5E44001D1BE7 /* AppDelegate.swift in Sources */,

@@ -17,9 +17,9 @@ open class DataCache {
     static let ioQueuePrefix = "com.nch.queue."
     static let defaultMaxCachePeriodInSecond: TimeInterval = 60 * 60 * 24 * 7         // a week
     
-    public static var instance = DataCache(name: "default")
+    public static let instance = DataCache(name: "default")
     
-    var cachePath: String
+    let cachePath: String
     
     let memCache = NSCache<AnyObject, AnyObject>()
     let ioQueue: DispatchQueue
@@ -38,16 +38,17 @@ open class DataCache {
     public init(name: String, path: String? = nil) {
         self.name = name
         
-        cachePath = path ?? NSSearchPathForDirectoriesInDomains(.cachesDirectory, FileManager.SearchPathDomainMask.userDomainMask, true).first!
+        var cachePath = path ?? NSSearchPathForDirectoriesInDomains(.cachesDirectory, FileManager.SearchPathDomainMask.userDomainMask, true).first!
         cachePath = (cachePath as NSString).appendingPathComponent(DataCache.cacheDirectoryPrefix + name)
+        self.cachePath = cachePath
         
         ioQueue = DispatchQueue(label: DataCache.ioQueuePrefix + name)
         
         self.fileManager = FileManager()
         
         #if !os(OSX) && !os(watchOS)
-            NotificationCenter.default.addObserver(self, selector: #selector(DataCache.cleanExpiredDiskCache), name: UIApplication.willTerminateNotification, object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(DataCache.cleanExpiredDiskCache), name: UIApplication.didEnterBackgroundNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(cleanExpiredDiskCache), name: UIApplication.willTerminateNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(cleanExpiredDiskCache), name: UIApplication.didEnterBackgroundNotification, object: nil)
         #endif
     }
     
@@ -56,7 +57,7 @@ open class DataCache {
     }
 }
 
-// MARK: Store data
+// MARK: - Store data
 
 extension DataCache {
     
@@ -66,14 +67,13 @@ extension DataCache {
         writeDataToDisk(data: data, key: key)
     }
     
-    func writeDataToDisk(data: Data, key: String) {
+    private func writeDataToDisk(data: Data, key: String) {
         ioQueue.async {
             if self.fileManager.fileExists(atPath: self.cachePath) == false {
                 do {
                     try self.fileManager.createDirectory(atPath: self.cachePath, withIntermediateDirectories: true, attributes: nil)
-                }
-                catch {
-                    print("Error while creating cache folder")
+                } catch {
+                    print("DataCache: Error while creating cache folder: \(error.localizedDescription)")
                 }
             }
             
@@ -100,8 +100,18 @@ extension DataCache {
         return self.fileManager.contents(atPath: cachePath(forKey: key))
     }
     
+    // MARK: - Read & write Codable types
+    public func write<T: Encodable>(codable: T, forKey key: String) throws {
+        let data = try JSONEncoder().encode(codable)
+        write(data: data, forKey: key)
+    }
     
-    // MARK: Read & write utils
+    public func readCodable<T: Decodable>(forKey key: String) throws -> T? {
+        guard let data = readData(forKey: key) else { return nil }
+        return try JSONDecoder().decode(T.self, from: data)
+    }
+    
+    // MARK: - Read & write primitive types
     
     
     /// Write an object for key. This object must inherit from `NSObject` and implement `NSCoding` protocol. `String`, `Array`, `Dictionary` conform to this method.
@@ -153,7 +163,7 @@ extension DataCache {
         return readObject(forKey: key) as? Dictionary<AnyHashable, Any>
     }
     
-    // MARK: Read & write image
+    // MARK: - Read & write image
     
     /// Write image for key. Please use this method to write an image instead of `writeObject(_:forKey:)`
     public func write(image: UIImage, forKey key: String, format: ImageFormat? = nil) {
@@ -171,8 +181,8 @@ extension DataCache {
         }
     }
     
-    /// Read image for key. Please use this method to write an image instead of `readObjectForKey(_:)`
-    public func readImageForKey(key: String) -> UIImage? {
+    /// Read image for key. Please use this method to write an image instead of `readObject(forKey:)`
+    public func readImage(forKey key: String) -> UIImage? {
         let data = readData(forKey: key)
         if let data = data {
             return UIImage(data: data, scale: 1.0)
@@ -180,11 +190,20 @@ extension DataCache {
         
         return nil
     }
+    
+    @available(*, deprecated, message: "Please use `readImage(forKey:)` instead. This will be removed in the future.")
+    public func readImageForKey(key: String) -> UIImage? {
+        return readImage(forKey: key)
+    }
 }
 
-// MARK: Utils
+// MARK: - Utils
 
 extension DataCache {
+    /// Check if has data for key
+    public func hasData(forKey key: String) -> Bool {
+        return hasDataOnDisk(forKey: key) || hasDataOnMem(forKey: key)
+    }
     
     /// Check if has data on disk
     public func hasDataOnDisk(forKey key: String) -> Bool {
@@ -197,7 +216,7 @@ extension DataCache {
     }
 }
 
-// MARK: Clean
+// MARK: - Clean
 
 extension DataCache {
     
@@ -214,7 +233,9 @@ extension DataCache {
         ioQueue.async {
             do {
                 try self.fileManager.removeItem(atPath: self.cachePath(forKey: key))
-            } catch {}
+            } catch {
+                print("DataCache: Error while remove file: \(error.localizedDescription)")
+            }
         }
     }
     
@@ -226,7 +247,9 @@ extension DataCache {
         ioQueue.async {
             do {
                 try self.fileManager.removeItem(atPath: self.cachePath)
-            } catch {}
+            } catch {
+                print("DataCache: Error when clean disk: \(error.localizedDescription)")
+            }
         }
     }
     
@@ -251,7 +274,9 @@ extension DataCache {
             for fileURL in URLsToDelete {
                 do {
                     try self.fileManager.removeItem(at: fileURL)
-                } catch _ { }
+                } catch {
+                    print("DataCache: Error while removing files \(error.localizedDescription)")
+                }
             }
             
             if self.maxDiskCacheSize > 0 && diskCacheSize > self.maxDiskCacheSize {
@@ -275,7 +300,9 @@ extension DataCache {
                     
                     do {
                         try self.fileManager.removeItem(at: fileURL)
-                    } catch { }
+                    } catch {
+                        print("DataCache: Error while removing files \(error.localizedDescription)")
+                    }
                     
                     URLsToDelete.append(fileURL)
                     
@@ -296,7 +323,7 @@ extension DataCache {
     }
 }
 
-// MARK: Helpers
+// MARK: - Helpers
 
 extension DataCache {
     
@@ -336,7 +363,9 @@ extension DataCache {
                         cachedFiles[fileUrl] = resourceValues
                     }
                 }
-            } catch _ { }
+            } catch {
+                print("DataCache: Error while iterating files \(error.localizedDescription)")
+            }
         }
         
         return (urlsToDelete, diskCacheSize, cachedFiles)
