@@ -6,7 +6,7 @@
 //  Copyright © 2016 Nguyen Cong Huy. All rights reserved.
 //
 
-import UIKit
+import Cocoa
 
 public enum ImageFormat {
     case unknown, png, jpeg
@@ -166,14 +166,14 @@ extension DataCache {
     // MARK: - Read & write image
     
     /// Write image for key. Please use this method to write an image instead of `writeObject(_:forKey:)`
-    public func write(image: UIImage, forKey key: String, format: ImageFormat? = nil) {
+    public func write(image: NSImage, forKey key: String, format: ImageFormat? = nil) {
         var data: Data? = nil
         
         if let format = format, format == .png {
-            data = image.pngData()
+            data = image.pngData
         }
         else {
-            data = image.jpegData(compressionQuality: 0.9)
+            data = image.jpegData
         }
         
         if let data = data {
@@ -182,17 +182,17 @@ extension DataCache {
     }
     
     /// Read image for key. Please use this method to write an image instead of `readObject(forKey:)`
-    public func readImage(forKey key: String) -> UIImage? {
+    public func readImage(forKey key: String) -> NSImage? {
         let data = readData(forKey: key)
         if let data = data {
-            return UIImage(data: data, scale: 1.0)
+            return NSImage(data: data)
         }
         
         return nil
     }
     
     @available(*, deprecated, message: "Please use `readImage(forKey:)` instead. This will be removed in the future.")
-    public func readImageForKey(key: String) -> UIImage? {
+    public func readImageForKey(key: String) -> NSImage? {
         return readImage(forKey: key)
     }
 }
@@ -375,4 +375,23 @@ extension DataCache {
         let fileName = key.md5
         return (cachePath as NSString).appendingPathComponent(fileName)
     }
+}
+
+extension NSImage {
+    var pngData: Data? { tiffRepresentation?.bitmap?.png }
+}
+
+extension NSImage {
+    var jpegData: Data? { tiffRepresentation?.bitmap?.jpeg }
+}
+
+extension NSBitmapImageRep {
+    var jpeg: Data? { representation(using: .jpeg, properties: [:]) }
+}
+
+extension NSBitmapImageRep {
+    var png: Data? { representation(using: .png, properties: [:]) }
+}
+extension Data {
+    var bitmap: NSBitmapImageRep? { NSBitmapImageRep(data: self) }
 }
