@@ -21,6 +21,10 @@
 
 import Foundation
 
+#if canImport(CryptoKit)
+  import CryptoKit
+#endif
+
 extension String {
     var md5: String {
         if let data = self.data(using: .utf8, allowLossyConversion: true) {
@@ -42,8 +46,17 @@ extension String {
             return self
         }
     }
-}
 
+#if canImport(CryptoKit)
+    var md5String: String {
+        let digest = Insecure.MD5.hash(data: self.data(using: .utf8) ?? Data())
+
+        return digest.map {
+            String(format: "%02hhx", $0)
+        }.joined()
+    }
+#endif
+}
 
 /** array of bytes, little-endian representation */
 func arrayOfBytes<T>(_ value: T, length: Int? = nil) -> [UInt8] {
