@@ -76,7 +76,7 @@ extension DataCache {
                 do {
                     try self.fileManager.createDirectory(atPath: self.cachePath, withIntermediateDirectories: true, attributes: nil)
                 } catch {
-                    print("DataCache: Error while creating cache folder: \(error.localizedDescription)")
+                    assertionFailure("DataCache: Error while creating cache folder: \(error.localizedDescription)")
                 }
             }
 
@@ -122,11 +122,11 @@ extension DataCache {
     public func write(object: NSCoding, forKey key: String, alsoOnDisk: Bool = false) {
         var dataToWrite: Data = Data()
         if #available(iOS 13, *) {
-            if let dataToSave = try? NSKeyedArchiver.archivedData(withRootObject: object, requiringSecureCoding: false) {
-                dataToWrite = dataToSave
+            do {
+                dataToWrite = try NSKeyedArchiver.archivedData(withRootObject: object, requiringSecureCoding: false)
+            } catch {
+                assertionFailure("data to save not found: \(error.localizedDescription)")
             }
-
-            assertionFailure("data to save not found")
         } else {
             dataToWrite = NSKeyedArchiver.archivedData(withRootObject: object)
         }
@@ -385,7 +385,7 @@ extension DataCache {
         if #available(iOS 13, *) {
             fileName = key.md5String
         } else {
-            fileName =  = key.md5
+            fileName = key.md5
         }
 
         return (cachePath as NSString).appendingPathComponent(fileName)
