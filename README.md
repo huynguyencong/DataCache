@@ -1,5 +1,5 @@
 # Cache
-This is a simple disk and memory cache for iOS written in Swift. It can cache `Codable` types, `NSCoding` types, primitive types (`String`, `Int`, `Array`, etc.).
+This is a simple disk and memory cache for iOS and macOS written in Swift. It can cache `Codable` types, `NSCoding` types, primitive types (`String`, `Int`, `Array`, etc.).
 
 ## Why would I like to use it?
 There are some reasons why you would like to use this libary for caching:
@@ -10,7 +10,7 @@ There are some reasons why you would like to use this libary for caching:
 - It stores data on disk and memory. When you read cache, it will try to get data from memory first. That makes reading speed fast. It cleans memory cache when RAM is full automatically, so it doesn't make your application out of memory.
 
 ## Compatibility
-- iOS 9 and later (if you want to use it on iOS 7, you can add files manually)
+- iOS 9/macOS 10.11 and later (if you want to use it on iOS 7, you can add files manually)
 - Swift 5 and later (for earlier Swift version, please use earlier DataCache version)
 
 ## Usage
@@ -57,11 +57,15 @@ do {
 }
 ```
 
-#### Read and write `UIImage`
+#### Read and write `UIImage` or `NSImage`
 
 - Write:
 ```swift
+// on iOS
 let image = UIImage(named: "myImageName")
+// on macOS 
+let image = NSImage(named: "myImageName")
+// will be written in a same way
 DataCache.instance.write(image: image!, forKey: "imageKey")
 ```
 
