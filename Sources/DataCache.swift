@@ -6,7 +6,11 @@
 //  Copyright © 2016 Nguyen Cong Huy. All rights reserved.
 //
 
-import UIKit
+#if os(iOS)
+    import UIKit
+#elseif os(OSX)
+    import AppKit
+#endif
 
 public enum ImageFormat {
     case unknown, png, jpeg
@@ -166,6 +170,7 @@ extension DataCache {
     // MARK: - Read & write image
     
     /// Write image for key. Please use this method to write an image instead of `writeObject(_:forKey:)`
+    #if os(iOS)
     public func write(image: UIImage, forKey key: String, format: ImageFormat? = nil) {
         var data: Data? = nil
         
@@ -195,6 +200,7 @@ extension DataCache {
     public func readImageForKey(key: String) -> UIImage? {
         return readImage(forKey: key)
     }
+    #endif
 }
 
 // MARK: - Utils
