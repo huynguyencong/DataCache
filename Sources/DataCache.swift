@@ -200,6 +200,36 @@ extension DataCache {
     public func readImageForKey(key: String) -> UIImage? {
         return readImage(forKey: key)
     }
+    #elseif os(OSX)
+    public func write(image: NSImage, forKey key: String, format: ImageFormat? = nil) {
+        var data: Data? = nil
+        
+        if let format = format, format == .png {
+            data = image.pngData
+        }
+        else {
+            data = image.jpegData
+        }
+        
+        if let data = data {
+            write(data: data, forKey: key)
+        }
+    }
+
+    /// Read image for key. Please use this method to write an image instead of `readObject(forKey:)`
+    public func readImage(forKey key: String) -> NSImage? {
+        let data = readData(forKey: key)
+        if let data = data {
+            return NSImage(data: data)
+        }
+        
+        return nil
+    }
+    
+    @available(*, deprecated, message: "Please use `readImage(forKey:)` instead. This will be removed in the future.")
+    public func readImageForKey(key: String) -> NSImage? {
+        return readImage(forKey: key)
+    }
     #endif
 }
 
@@ -382,3 +412,24 @@ extension DataCache {
         return (cachePath as NSString).appendingPathComponent(fileName)
     }
 }
+
+#if os(OSX)
+extension NSImage {
+     var pngData: Data? { tiffRepresentation?.bitmap?.png }
+ }
+
+ extension NSImage {
+     var jpegData: Data? { tiffRepresentation?.bitmap?.jpeg }
+ }
+
+ extension NSBitmapImageRep {
+     var jpeg: Data? { representation(using: .jpeg, properties: [:]) }
+ }
+
+ extension NSBitmapImageRep {
+     var png: Data? { representation(using: .png, properties: [:]) }
+ }
+ extension Data {
+     var bitmap: NSBitmapImageRep? { NSBitmapImageRep(data: self) }
+ }
+#endif
