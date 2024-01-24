@@ -42,7 +42,7 @@ open class DataCache {
     public init(name: String, path: String? = nil) {
         self.name = name
         
-        var cachePath = path ?? NSSearchPathForDirectoriesInDomains(.cachesDirectory, FileManager.SearchPathDomainMask.userDomainMask, true).first!
+        var cachePath = path ?? NSSearchPathForDirectoriesInDomains(.documentDirectory, FileManager.SearchPathDomainMask.userDomainMask, true).first!
         cachePath = (cachePath as NSString).appendingPathComponent(DataCache.cacheDirectoryPrefix + name)
         self.cachePath = cachePath
         
